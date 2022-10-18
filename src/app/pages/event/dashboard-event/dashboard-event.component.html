@@ -1,0 +1,32 @@
+<app-event-dashboard-nav></app-event-dashboard-nav>
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mt-1">
+        <div class="card-header">
+          Editar Evento (#{{event_uuid}})
+        </div>
+        <div class="card-body">
+          <div *ngIf="event">
+            <p>Nome:</p>
+            <h4>{{event.name}}</h4>
+            <p>Local:</p>
+            <h4>{{event.place}}</h4>
+            <p>Período:</p>
+            <h4>{{event.date_start}} - {{event.date_finish}}</h4>
+            <p>Controle de Tempo:</p>
+            <h4>{{getTimeControl()}}</h4>
+            <a routerLink="/event/{{event.uuid}}/edit" class="btn btn-success">Editar</a>
+          </div>
+        </div>
+      </div><div class="card mt-1" *ngIf="event">
+        <div class="card-header">
+          Administrar Torneios
+        </div>
+        <div class="card-body">
+          <app-tournaments [event_uuid]="event_uuid"></app-tournaments>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

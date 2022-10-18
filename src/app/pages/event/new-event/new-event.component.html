@@ -1,0 +1,44 @@
+<app-event-nav></app-event-nav>
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mt-1">
+        <div class="card-header">
+          Novo Evento
+        </div>
+        <form #form="ngForm">
+          <div class="card-body">
+            <div class="form-group">
+              <label for="name">Nome:</label>
+              <input type="text" name="name" id="name" class="form-control" [(ngModel)]="xadrezsuico.name" />
+            </div>
+            <div class="form-group">
+              <label for="date_start">Data Inicial:</label>
+              <input type="text" name="date_start" id="date_start" class="form-control" [(ngModel)]="xadrezsuico.date_start" mask="00/00/0000" [dropSpecialCharacters]="false" />
+            </div>
+            <div class="form-group">
+              <label for="date_finish">Data Final:</label>
+              <input type="text" name="date_finish" id="date_finish" class="form-control" [(ngModel)]="xadrezsuico.date_finish" mask="00/00/0000" [dropSpecialCharacters]="false" />
+            </div>
+            <div class="form-group">
+              <label for="time_control">Controle de Tempo:</label>
+              <select name="time_control" id="time_control" class="form-select" [(ngModel)]="xadrezsuico.time_control">
+                <option value="BTZ">Blitz/Relâmpago</option>
+                <option value="RPD">Rápido</option>
+                <option value="STD">Convencional</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="place">Local:</label>
+              <input type="text" name="place" id="place" class="form-control" [(ngModel)]="xadrezsuico.place" />
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" type="button" (click)="save()">Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+

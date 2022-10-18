@@ -1,0 +1,27 @@
+/* Importing Bootstrap SCSS file. */
+@import '~bootstrap/scss/bootstrap';
+
+$green: #00a65a;
+
+.navbar{
+  background-color: $green !important;
+  color: white !important;
+  a{
+    color: white;
+  }
+
+  .navbar-brand{
+    padding-right: 1rem;
+  }
+  .nav-item{
+    background-color: #fff;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 5px;
+    a{
+      color: $green;
+    }
+  }
+}

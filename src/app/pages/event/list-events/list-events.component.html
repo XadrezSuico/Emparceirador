@@ -1,0 +1,34 @@
+<app-event-nav></app-event-nav>
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card mt-1">
+        <div class="card-header">
+          Listar Eventos
+        </div>
+        <div class="card-body">
+          <table class="table table-striped table-hover">
+            <thead>
+              <th>#</th>
+              <th>Nome</th>
+              <th>Local</th>
+              <th>Período</th>
+              <th>Opções</th>
+            </thead>
+            <tbody>
+              <tr *ngFor="let event of events">
+                <td>{{event.uuid}}</td>
+                <td>{{event.name}}</td>
+                <td>{{event.place}}</td>
+                <td>{{event.date_start}} - {{event.date_finish}}</td>
+                <td>
+                  <a routerLink="/event/{{event.uuid}}/dashboard" class="btn btn-success">Abrir</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

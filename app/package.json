@@ -1,0 +1,16 @@
+{
+  "name": "angular-electron",
+  "description": "Angular Electron sample",
+  "author": {
+    "name": "Maxime GRIS",
+    "email": "maxime.gris@gmail.com"
+  },
+  "version": "11.2.0",
+  "main": "main.js",
+  "private": true,
+  "dependencies": {
+    "sequelize": "^6.25.2",
+    "sqlite3": "^5.1.2"
+  },
+  "scripts": {}
+}

@@ -1,0 +1,13 @@
+<div>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link active" (click)="new_tournament()">Novo Torneio</a>
+    </li>
+    <li class="nav-item" *ngFor="let tournament of tournaments">
+      <a class="nav-link" href="#">{{tournament.name}}</a>
+    </li>
+  </ul>
+</div>
+<div #newTournament>
+  <app-dashboard-tournament [event_uuid]="event_uuid"></app-dashboard-tournament>
+</div>

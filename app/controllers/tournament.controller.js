@@ -10,18 +10,19 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.tournaments.listFromEvent', listFromEvent)
   ipcMain.handle('model.tournaments.create', create)
   ipcMain.handle('model.tournaments.get', get)
+  ipcMain.handle('model.tournaments.update', update)
 }
 
 async function create(event, event_uuid, tournament){
   try {
-        const resultadoCreate = await Tournaments.create({
-            name: tournament.name,
-            tournament_type: tournament.tournament_type,
-            rounds_number: tournament.rounds_number,
-            eventUuid: event_uuid,
-        })
-        console.log(resultadoCreate);
-        return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
+      let resultadoCreate = await Tournaments.create({
+          name: tournament.name,
+          tournament_type: tournament.tournament_type,
+          rounds_number: tournament.rounds_number,
+          eventUuid: event_uuid,
+      })
+      console.log(resultadoCreate);
+      return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);
     }
@@ -29,7 +30,7 @@ async function create(event, event_uuid, tournament){
 
 async function listAll() {
   try {
-    const tournaments = await Tournaments.findAll();
+    let tournaments = await Tournaments.findAll();
     let tournaments_return = [];
     let i = 0;
     for(let tournament of tournaments){
@@ -50,7 +51,7 @@ async function listAll() {
 
 async function listFromEvent(event,event_uuid) {
   try {
-    const tournaments = await Tournaments.findAll({
+    let tournaments = await Tournaments.findAll({
       where: {
         eventUuid: event_uuid
       }
@@ -76,7 +77,7 @@ async function listFromEvent(event,event_uuid) {
 
 async function get(e,uuid) {
   try {
-    const tournament = await Tournaments.findByPk(uuid);
+    let tournament = await Tournaments.findByPk(uuid);
 
     let tournament_return = {
       uuid: tournament.uuid,
@@ -89,4 +90,23 @@ async function get(e,uuid) {
   } catch (error) {
       console.log(error);
   }
+}
+
+async function update(e,uuid,tournament){
+  try {
+      let resultado = await Tournaments.update({
+          name: tournament.name,
+          tournament_type: tournament.tournament_type,
+          rounds_number: tournament.rounds_number,
+      },{
+        where:{
+          uuid:uuid
+        }
+      })
+      console.log(resultado);
+      return {ok:1,error:0};
+    } catch (error) {
+        console.log(error);
+    }
+
 }

@@ -1,13 +1,16 @@
-<div>
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link active" (click)="new_tournament()">Novo Torneio</a>
-    </li>
-    <li class="nav-item" *ngFor="let tournament of tournaments">
-      <a class="nav-link" href="#">{{tournament.name}}</a>
-    </li>
-  </ul>
-</div>
-<div #newTournament>
-  <app-dashboard-tournament [event_uuid]="event_uuid"></app-dashboard-tournament>
-</div>
+<nav ngbNav #nav="ngbNav" class="nav-tabs">
+  <ng-container ngbNavItem>
+    <a ngbNavLink>Novo Torneio</a>
+    <ng-template ngbNavContent>
+      <app-dashboard-tournament [event_uuid]="event_uuid" (new_tournament_event_emitter)="onNewTournament($event)"></app-dashboard-tournament>
+    </ng-template>
+  </ng-container>
+  <ng-container ngbNavItem *ngFor="let tournament of tournaments">
+    <a ngbNavLink>{{tournament.name}}</a>
+    <ng-template ngbNavContent>
+      <app-dashboard-tournament [event_uuid]="event_uuid" [tournament_uuid]="tournament.uuid"></app-dashboard-tournament>
+    </ng-template>
+  </ng-container>
+</nav>
+
+<div [ngbNavOutlet]="nav" class="mt-2"></div>

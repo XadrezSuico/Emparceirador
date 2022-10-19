@@ -56,6 +56,8 @@ function createWindow(): BrowserWindow {
 
 const event_controller = require("./controllers/event.controller")
 const tournament_controller = require("./controllers/tournament.controller")
+const player_controller = require("./controllers/player.controller")
+const category_controller = require("./controllers/category.controller")
 
 try {
   // This method will be called when Electron has finished
@@ -66,6 +68,8 @@ try {
     ipcMain.on('set-title', setTitle)
     event_controller.setEvents(ipcMain)
     tournament_controller.setEvents(ipcMain)
+    category_controller.setEvents(ipcMain)
+    player_controller.setEvents(ipcMain)
 
 
 

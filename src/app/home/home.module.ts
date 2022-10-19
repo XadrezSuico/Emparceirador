@@ -10,9 +10,10 @@ import { HomeRoutingModule } from './home-routing.module';
 import { HomeComponent } from './home.component';
 import { SharedModule } from '../shared/shared.module';
 import { NgxMaskModule } from 'ngx-mask';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [HomeComponent,NewEventComponent,EventNavComponent,ListEventsComponent],
-  imports: [CommonModule, SharedModule, HomeRoutingModule, FontAwesomeModule, NgxMaskModule.forChild()]
+  imports: [CommonModule, SharedModule, HomeRoutingModule, FontAwesomeModule, NgxMaskModule.forChild(),NgbModule]
 })
 export class HomeModule {}

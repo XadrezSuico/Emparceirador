@@ -33,8 +33,14 @@ export class TournamentsComponent implements OnInit, AfterViewInit {
     console.log(retorno);
   }
 
-  new_tournament(){
-
+  async onNewTournament(event:string){
+    let retorno = await this.electronService.ipcRenderer.invoke("model.tournaments.get",event);
+    if(retorno.ok == 1){
+      this.tournaments[this.tournaments.length] = retorno.tournament;
+    }else{
+      alert("error");
+    }
+    console.log(retorno);
   }
 
 }

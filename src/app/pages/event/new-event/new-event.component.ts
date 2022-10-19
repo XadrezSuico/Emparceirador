@@ -2,6 +2,7 @@ import { XadrezSuicoFile } from './../../../_interfaces/_file/xs-file';
 import { XadrezSuicoFileFactory } from './../../../_factory/xs-file.factory';
 import { Component, OnInit } from '@angular/core';
 import { ElectronService } from '../../../core/services';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-new-event',
@@ -30,7 +31,8 @@ export class NewEventComponent implements OnInit {
 
   constructor(
     private xs_file_factory:XadrezSuicoFileFactory,
-    private electronService: ElectronService
+    private electronService: ElectronService,
+    private router: Router
   ) {
     this.xadrezsuico = xs_file_factory.create();
 
@@ -43,6 +45,10 @@ export class NewEventComponent implements OnInit {
   async save(){
     let retorno = await this.electronService.ipcRenderer.invoke("model.events.create", this.xadrezsuico);
     console.log(retorno);
+
+    if(retorno.ok == 1){
+        this.router.navigate(["/event/".concat(retorno.data.uuid).concat("/dashboard")]);
+    }
   }
 
 }

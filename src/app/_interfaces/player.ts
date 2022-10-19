@@ -23,11 +23,8 @@ export interface Player{
   xz_id?:number;
   xz_rating?:number;
 
-  cbx_id?:number;
-  cbx_rating?:number;
-
-  lbx_id?:number;
-  lbx_rating?:number;
+  nat_id?:number;
+  nat_rating?:number;
 
   fide_id?:number;
   fide_rating?:number;

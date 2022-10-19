@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const database = require('../db/db');
 const Players = require('./player.model');
 
-const Tournaments = database.define('tournaments', {
+const Categories = database.define('categories', {
   id: {
     type: Sequelize.INTEGER,
     allowNull: true
@@ -16,16 +16,12 @@ const Tournaments = database.define('tournaments', {
     type: Sequelize.STRING,
     allowNull: false
   },
-  tournament_type: {
+  abbr: {
     type: Sequelize.STRING,
-    allowNull: false
-  },
-  rounds_number: {
-    type: Sequelize.INTEGER,
     allowNull: true
   },
 })
 
-Tournaments.hasMany(Players)
+Categories.hasMany(Players)
 
-module.exports = Tournaments;
+module.exports = Categories;

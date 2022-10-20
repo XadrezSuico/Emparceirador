@@ -21,7 +21,7 @@ const Events = database.define('events', {
     type: Sequelize.DATE,
     allowNull: true,
     get: function() {
-      return moment.utc(this.getDataValue('date_finish')).format('YYYY-MM-DD');
+      return moment.utc(this.getDataValue('date_start')).format('YYYY-MM-DD');
     }
   },
   date_finish: {

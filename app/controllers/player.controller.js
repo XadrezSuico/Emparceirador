@@ -59,7 +59,7 @@ async function listAll() {
         city: player.city,
         club: player.club,
 
-        borndate: dateHelper.convertToBr(player.borndate),
+        borndate: (player.borndate) ? dateHelper.convertToBr(player.borndate) : null,
 
         int_id: player.int_id,
         int_rating: player.int_rating,
@@ -102,7 +102,7 @@ async function listFromTournament(event,tournament_uuid) {
         city: player.city,
         club: player.club,
 
-        borndate: dateHelper.convertToBr(player.borndate),
+        borndate: (player.borndate) ? dateHelper.convertToBr(player.borndate) : null,
 
         int_id: player.int_id,
         int_rating: player.int_rating,
@@ -138,7 +138,7 @@ async function get(e,uuid) {
       city: player.city,
       club: player.club,
 
-      borndate: dateHelper.convertToBr(player.borndate),
+      borndate: (player.borndate) ? dateHelper.convertToBr(player.borndate) : null,
 
       int_id: player.int_id,
       int_rating: player.int_rating,

@@ -2,6 +2,7 @@ import { Tournament } from './../../../_interfaces/tournament';
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ElectronService } from '../../../core/services';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-dashboard-event',
@@ -12,11 +13,13 @@ export class DashboardEventComponent implements OnInit, AfterViewInit {
 
   event_uuid;
   event;
+  edit_event;
 
   tournaments:Array<Tournament> = [];
   constructor(
     private electronService: ElectronService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private modalService: NgbModal
   ) {
   }
 
@@ -47,6 +50,28 @@ export class DashboardEventComponent implements OnInit, AfterViewInit {
         case "BTZ":
           return "Blitz/Relâmpago"
       }
+    }
+  }
+
+  edit(content){
+    this.edit_event = JSON.parse(JSON.stringify(this.event));
+    this.open(content);
+  }
+
+	open(content) {
+		this.modalService.open(content, { ariaLabelledBy: 'modal-basic-title' }).result.then(
+			(result) => {
+			},
+			(reason) => {
+			},
+		);
+	}
+
+  async save(){
+    let retorno = await this.electronService.ipcRenderer.invoke("model.events.update", this.edit_event);
+    if(retorno.ok){
+      this.getEvent();
+      this.modalService.dismissAll();
     }
   }
 

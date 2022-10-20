@@ -8,6 +8,8 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.events.create.example', createExample)
   ipcMain.handle('model.events.create', create)
   ipcMain.handle('model.events.get', get)
+  ipcMain.handle('model.events.update', update)
+  ipcMain.handle('model.events.remove', remove)
 }
 
 async function create(event, xadrezsuico){
@@ -84,6 +86,47 @@ async function get(e,uuid) {
     };
 
     return {ok:1,error:0,event:event_return};
+  } catch (error) {
+      console.log(error);
+  }
+}
+
+
+async function update(e,event){
+  try {
+      let resultado = await Events.update({
+      name: event.name,
+      date_start: dateHelper.convertToSql(event.date_start),
+      date_finish: dateHelper.convertToSql(event.date_finish),
+      place: event.place,
+      time_control: event.time_control
+      },{
+        where:{
+          uuid:event.uuid
+        }
+      })
+      console.log(resultado);
+      return {ok:1,error:0};
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+async function remove(e,uuid) {
+  try {
+    let event = await Events.findByPk(uuid);
+
+    if(event){
+      Events.destroy({
+        where: {
+          uuid: uuid
+        }
+      });
+      return {ok:1,error:0};
+    }else{
+      return {ok:0,error:1,message:"Evento não encontrado"};
+    }
+
   } catch (error) {
       console.log(error);
   }

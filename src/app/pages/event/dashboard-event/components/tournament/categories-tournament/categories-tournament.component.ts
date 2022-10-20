@@ -79,4 +79,12 @@ export class CategoriesTournamentComponent implements OnInit {
     }
   }
 
+
+  async remove(uuid){
+    let retorno = await this.electronService.ipcRenderer.invoke("model.categories.remove", uuid);
+    if(retorno.ok){
+      this.list();
+    }
+  }
+
 }

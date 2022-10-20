@@ -113,4 +113,11 @@ export class PlayersTournamentComponent implements OnInit {
     }
   }
 
+  async remove(uuid){
+    let retorno = await this.electronService.ipcRenderer.invoke("model.players.remove", uuid);
+    if(retorno.ok){
+      this.list();
+    }
+  }
+
 }

@@ -11,6 +11,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.players.create', create)
   ipcMain.handle('model.players.get', get)
   ipcMain.handle('model.players.update', update)
+  ipcMain.handle('model.players.remove', remove)
 }
 
 async function create(event, tournament_uuid, player){
@@ -203,4 +204,24 @@ async function getLastNumber(tournament_uuid){
     }
   }
   return 0;
+}
+
+async function remove(e,uuid) {
+  try {
+    let player = await Players.findByPk(uuid);
+
+    if(player){
+      Players.destroy({
+        where: {
+          uuid: uuid
+        }
+      });
+      return {ok:1,error:0};
+    }else{
+      return {ok:0,error:1,message:"Jogador não encontrado"};
+    }
+
+  } catch (error) {
+      console.log(error);
+  }
 }

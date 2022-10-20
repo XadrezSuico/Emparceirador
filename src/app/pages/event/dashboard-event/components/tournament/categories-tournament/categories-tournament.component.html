@@ -37,6 +37,7 @@
       <td>{{category.abbr}}</td>
       <td>
         <button class="btn btn-outline-primary" (click)="get(categoryForm,category.uuid)">Editar</button>
+        <button class="btn btn-outline-danger" (click)="remove(category.uuid)">Apagar</button>
       </td>
     </tr>
   </tbody>

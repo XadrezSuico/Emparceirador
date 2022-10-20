@@ -11,6 +11,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.categories.create', create)
   ipcMain.handle('model.categories.get', get)
   ipcMain.handle('model.categories.update', update)
+  ipcMain.handle('model.categories.remove', remove)
 }
 
 async function create(event, tournament_uuid, category){
@@ -111,4 +112,23 @@ async function update(e,category){
         console.log(error);
     }
 
+}
+async function remove(e,uuid) {
+  try {
+    let category = await Categories.findByPk(uuid);
+
+    if(category){
+      Categories.destroy({
+        where: {
+          uuid: uuid
+        }
+      });
+      return {ok:1,error:0};
+    }else{
+      return {ok:0,error:1,message:"Categoria não encontrada"};
+    }
+
+  } catch (error) {
+      console.log(error);
+  }
 }

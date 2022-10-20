@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const database = require('../db/db');
+const Categories = require('./category.model');
 const Players = require('./player.model');
 
 const Tournaments = database.define('tournaments', {
@@ -27,5 +28,6 @@ const Tournaments = database.define('tournaments', {
 })
 
 Tournaments.hasMany(Players)
+Tournaments.hasMany(Categories)
 
 module.exports = Tournaments;

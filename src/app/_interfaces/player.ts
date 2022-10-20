@@ -7,15 +7,12 @@ export interface Player{
   id?:number;
   name:string;
   start_number:number;
-
-  firstname?:string;
-  lastname?:string;
-
   borndate?:Date;
 
   city:City;
   club:Club;
-  category:string; // Category's UUID
+  category?:Category; // Category's UUID
+  category_uuid:string; // Category's UUID
 
   int_id?:number;
   int_rating?:number;

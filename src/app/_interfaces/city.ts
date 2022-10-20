@@ -1,5 +1,5 @@
 export interface City{
-  uuid:string;
+  uuid?:string;
   id?:number;
-  name:string;
+  name?:string;
 }

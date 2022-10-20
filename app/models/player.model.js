@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const database = require('../db/db');
+const moment = require('moment');
 
 const Players = database.define('players', {
   id: {
@@ -15,14 +16,6 @@ const Players = database.define('players', {
     type: Sequelize.STRING,
     allowNull: false
   },
-  firstname: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  lastname: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
   start_number: {
     type: Sequelize.INTEGER,
     allowNull: false
@@ -31,7 +24,7 @@ const Players = database.define('players', {
     type: Sequelize.DATE,
     allowNull: true,
     get: function() {
-      return moment.utc(this.getDataValue('date_finish')).format('YYYY-MM-DD');
+      return moment.utc(this.getDataValue('borndate')).format('YYYY-MM-DD');
     }
   },
   city: {

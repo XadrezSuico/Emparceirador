@@ -7,7 +7,7 @@ module.exports.setEvents = (ipcMain) => {
   database.sync();
 
   ipcMain.handle('model.players.listAll', listAll)
-  ipcMain.handle('model.players.listFromTournament', listFromTournament)
+  ipcMain.handle('model.players.listByTournament', listFromTournament)
   ipcMain.handle('model.players.create', create)
   ipcMain.handle('model.players.get', get)
   ipcMain.handle('model.players.update', update)
@@ -17,10 +17,12 @@ async function create(event, tournament_uuid, player){
   try {
       let resultadoCreate = await Players.create({
         name: player.name,
-        firstname: player.firstname,
-        lastname: player.lastname,
         city: player.city,
         club: player.club,
+
+        start_number: (await getLastNumber(tournament_uuid)) + 1,
+
+        borndate: (player.borndate) ? dateHelper.convertToSql(player.borndate) : null,
 
         int_id: player.int_id,
         int_rating: player.int_rating,
@@ -51,11 +53,12 @@ async function listAll() {
     let i = 0;
     for(let player of players){
       let player_return = {
+        uuid: player.uuid,
         name: player.name,
-        firstname: player.firstname,
-        lastname: player.lastname,
         city: player.city,
         club: player.club,
+
+        borndate: dateHelper.convertToBr(player.borndate),
 
         int_id: player.int_id,
         int_rating: player.int_rating,
@@ -90,12 +93,15 @@ async function listFromTournament(event,tournament_uuid) {
     let players_return = [];
     let i = 0;
     for(let player of players){
+      console.log(player.borndate);
+
       let player_return = {
+        uuid: player.uuid,
         name: player.name,
-        firstname: player.firstname,
-        lastname: player.lastname,
         city: player.city,
         club: player.club,
+
+        borndate: dateHelper.convertToBr(player.borndate),
 
         int_id: player.int_id,
         int_rating: player.int_rating,
@@ -126,11 +132,12 @@ async function get(e,uuid) {
     let player = await Players.findByPk(uuid);
 
     let player_return = {
+      uuid: player.uuid,
       name: player.name,
-      firstname: player.firstname,
-      lastname: player.lastname,
       city: player.city,
       club: player.club,
+
+      borndate: dateHelper.convertToBr(player.borndate),
 
       int_id: player.int_id,
       int_rating: player.int_rating,
@@ -153,14 +160,14 @@ async function get(e,uuid) {
   }
 }
 
-async function update(e,uuid,player){
+async function update(e,player){
   try {
       let resultado = await Players.update({
         name: player.name,
-        firstname: player.firstname,
-        lastname: player.lastname,
         city: player.city,
         club: player.club,
+
+        borndate: (player.borndate) ? dateHelper.convertToSql(player.borndate) : null,
 
         int_id: player.int_id,
         int_rating: player.int_rating,
@@ -177,7 +184,7 @@ async function update(e,uuid,player){
         categoryUuid: player.category_uuid,
       },{
         where:{
-          uuid:uuid
+          uuid:player.uuid
         }
       })
       console.log(resultado);
@@ -186,4 +193,14 @@ async function update(e,uuid,player){
         console.log(error);
     }
 
+}
+
+async function getLastNumber(tournament_uuid){
+  let retorno = listFromTournament(null,tournament_uuid);
+  if(retorno.ok == 1){
+    if(retorno.players.length > 0){
+      return retorno.players.length;
+    }
+  }
+  return 0;
 }

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ElectronService } from '../../../../../../core/services';
 import { Category } from '../../../../../../_interfaces/category';
 
@@ -38,6 +38,25 @@ export class CategoriesTournamentComponent implements OnInit {
   }
 
 
+  async get(content,uuid){
+    let  retorno = await this.electronService.ipcRenderer.invoke("model.categories.get", uuid);
+    if(retorno.ok){
+      this.category = retorno.category;
+
+      this.open(content);
+    }
+  }
+
+  new_category(content){
+    this.category = {
+      uuid:'',
+      name:''
+    };
+
+    this.open(content);
+  }
+
+
 	open(content) {
 		this.modalService.open(content, { ariaLabelledBy: 'modal-basic-title' }).result.then(
 			(result) => {
@@ -47,8 +66,17 @@ export class CategoriesTournamentComponent implements OnInit {
 		);
 	}
 
-  save(){
-
+  async save(){
+    let retorno;
+    if(this.category.uuid){
+      retorno = await this.electronService.ipcRenderer.invoke("model.categories.update", this.category);
+    }else{
+      retorno = await this.electronService.ipcRenderer.invoke("model.categories.create", this.tournament_uuid, this.category);
+    }
+    if(retorno.ok){
+      this.list();
+      this.modalService.dismissAll();
+    }
   }
 
 }

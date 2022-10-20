@@ -35,10 +35,11 @@ async function listAll() {
     let i = 0;
     for(let category of categories){
       let category_return = {
+        uuid: category.uuid,
         name: category.name,
         abbr: category.abbr,
 
-        tournamentUuid: tournament_uuid,
+        tournament_uuid: category.tournamentUuid,
       };
 
       categories_return[i++] = category_return;
@@ -51,7 +52,7 @@ async function listAll() {
 
 async function listFromTournament(event,tournament_uuid) {
   try {
-    let players = await Categories.findAll({
+    let categories = await Categories.findAll({
       where: {
         tournamentUuid: tournament_uuid
       }
@@ -60,10 +61,11 @@ async function listFromTournament(event,tournament_uuid) {
     let i = 0;
     for(let category of categories){
       let category_return = {
+        uuid: category.uuid,
         name: category.name,
         abbr: category.abbr,
 
-        tournamentUuid: tournament_uuid,
+        tournament_uuid: category.tournamentUuid,
       };
 
       categories_return[i++] = category_return;
@@ -80,10 +82,11 @@ async function get(e,uuid) {
     let category = await Categories.findByPk(uuid);
 
       let category_return = {
+        uuid: category.uuid,
         name: category.name,
         abbr: category.abbr,
 
-        tournamentUuid: tournament_uuid,
+        tournament_uuid: category.tournamentUuid,
       };
 
     return {ok:1,error:0,category:category_return};
@@ -92,14 +95,14 @@ async function get(e,uuid) {
   }
 }
 
-async function update(e,uuid,category){
+async function update(e,category){
   try {
       let resultado = await Categories.update({
         name: category.name,
         abbr: category.abbr,
       },{
         where:{
-          uuid:uuid
+          uuid:category.uuid
         }
       })
       console.log(resultado);

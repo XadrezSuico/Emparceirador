@@ -1,6 +1,13 @@
 /* Importing Bootstrap SCSS file. */
 @import '~bootstrap/scss/bootstrap';
 
+.content-box, nav .container{
+  padding-left: 1rem;
+  padding-right: 1rem;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 $green: #00a65a;
 
 .navbar{

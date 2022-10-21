@@ -2,6 +2,8 @@ const Sequelize = require('sequelize');
 const database = require('../db/db');
 const moment = require('moment');
 
+const Pairings = require("./pairing.model")
+
 const Players = database.define('players', {
   id: {
     type: Sequelize.INTEGER,
@@ -72,6 +74,13 @@ const Players = database.define('players', {
     type: Sequelize.INTEGER,
     allowNull: true
   },
+})
+
+Players.hasMany(Pairings,{
+  foreignKey: "player_a_uuid"
+})
+Players.hasMany(Pairings,{
+  foreignKey: "player_b_uuid"
 })
 
 module.exports = Players;

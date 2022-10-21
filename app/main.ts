@@ -59,6 +59,7 @@ const tournament_controller = require("./controllers/tournament.controller")
 const player_controller = require("./controllers/player.controller")
 const category_controller = require("./controllers/category.controller")
 const round_controller = require("./controllers/round.controller")
+const pairing_controller = require("./controllers/pairing.controller")
 
 try {
   // This method will be called when Electron has finished
@@ -72,6 +73,7 @@ try {
     category_controller.setEvents(ipcMain)
     player_controller.setEvents(ipcMain)
     round_controller.setEvents(ipcMain)
+    pairing_controller.setEvents(ipcMain)
 
 
 

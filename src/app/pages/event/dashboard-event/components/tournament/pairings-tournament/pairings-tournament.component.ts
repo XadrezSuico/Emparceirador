@@ -20,4 +20,11 @@ export class PairingsTournamentComponent implements OnInit {
   ngOnInit() {
   }
 
+  async generateRound(){
+    let  retorno = await this.electronService.ipcRenderer.invoke("model.rounds.generateRound", this.tournament_uuid);
+    if(retorno.ok){
+      alert(1);
+    }
+
+  }
 }

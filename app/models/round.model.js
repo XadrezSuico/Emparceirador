@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const database = require('../db/db');
 
-const Pairs = require("./pair.model")
+const Pairings = require("./pairing.model")
 
 const Rounds = database.define('rounds', {
   id: {
@@ -19,11 +19,6 @@ const Rounds = database.define('rounds', {
   },
 })
 
-Rounds.hasMany(Pairs,{
-  foreignKey: "player_a_uuid"
-})
-Rounds.hasMany(Pairs,{
-  foreignKey: "player_b_uuid"
-})
+Rounds.hasMany(Pairings)
 
 module.exports = Rounds;

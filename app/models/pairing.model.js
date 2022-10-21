@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const database = require('../db/db');
 
-const Pairs = database.define('pairs', {
+const Pairings = database.define('pairings', {
   id: {
     type: Sequelize.INTEGER,
     allowNull: true
@@ -19,7 +19,7 @@ const Pairs = database.define('pairs', {
 
   player_a_uuid: {
     type: Sequelize.UUID,
-    primaryKey: true,
+    allowNull: false
   },
   player_a_result: {
     type: Sequelize.INTEGER,
@@ -33,7 +33,7 @@ const Pairs = database.define('pairs', {
 
   player_b_uuid: {
     type: Sequelize.UUID,
-    primaryKey: true,
+    allowNull: true
   },
   player_b_result: {
     type: Sequelize.INTEGER,
@@ -53,4 +53,4 @@ const Pairs = database.define('pairs', {
   },
 })
 
-module.exports = Pairs;
+module.exports = Pairings;

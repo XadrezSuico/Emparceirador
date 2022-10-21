@@ -19,6 +19,15 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.players.reorderPlayers', reorderPlayers)
 }
 
+module.exports.listAll = listAll;
+module.exports.listByTournament = listFromTournament;
+module.exports.listFromTournament = listFromTournament;
+module.exports.create = create;
+module.exports.get = get;
+module.exports.update = update;
+module.exports.remove = remove;
+module.exports.reorderPlayers = reorderPlayers;
+
 async function create(event, tournament_uuid, player){
   try {
       let resultadoCreate = await Players.create({

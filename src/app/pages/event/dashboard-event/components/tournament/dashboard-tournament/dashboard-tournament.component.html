@@ -25,36 +25,53 @@
 </div>
 
 <div *ngIf="tournament && tournament_uuid">
+  <h4>Torneio: {{tournament.name}}</h4>
+  <div class="row">
+    <div class="col-md-4">
+      <h6>Sistema: {{getSystemType()}}</h6>
+    </div>
+    <div class="col-md-4">
+      <h6>Status do Torneio: {{getTournamentStatus()}}</h6>
+    </div>
+    <div class="col-md-4">
+      Rodada:
+      <select>
+        <option value="0">0</option>
+      </select>
+    </div>
+  </div>
+  <hr/>
   <nav ngbNav #nav="ngbNav" class="nav-pills">
 
     <ng-container ngbNavItem>
-      <a ngbNavLink>Jogadores</a>
+      <a ngbNavLink><fa-icon [icon]="players_icon"></fa-icon> Jogadores</a>
       <ng-template ngbNavContent>
         <app-players-tournament [tournament_uuid]="tournament_uuid"></app-players-tournament>
       </ng-template>
     </ng-container>
 
     <ng-container ngbNavItem>
-      <a ngbNavLink>Emparceiramentos</a>
+      <a ngbNavLink><fa-icon [icon]="pairings_icon"></fa-icon> Emparceiramentos</a>
+      <ng-template ngbNavContent>
+        <app-pairings-tournament [tournament_uuid]="tournament_uuid"></app-pairings-tournament>
+      </ng-template>
+    </ng-container>
+
+    <ng-container ngbNavItem>
+      <a ngbNavLink><fa-icon [icon]="results_icon"></fa-icon> Resultados</a>
       <ng-template ngbNavContent>
       </ng-template>
     </ng-container>
 
     <ng-container ngbNavItem>
-      <a ngbNavLink>Resultados</a>
-      <ng-template ngbNavContent>
-      </ng-template>
-    </ng-container>
-
-    <ng-container ngbNavItem>
-      <a ngbNavLink>Categorias</a>
+      <a ngbNavLink><fa-icon [icon]="categories_icon"></fa-icon> Categorias</a>
       <ng-template ngbNavContent>
         <app-categories-tournament [tournament_uuid]="tournament_uuid"></app-categories-tournament>
       </ng-template>
     </ng-container>
 
     <ng-container ngbNavItem>
-      <a ngbNavLink>Editar</a>
+      <a ngbNavLink><fa-icon [icon]="edit_icon"></fa-icon> Editar</a>
       <ng-template ngbNavContent>
         <div class="row">
           <div class="col-md-12">
@@ -75,6 +92,59 @@
                 <label for="rounds_number">Número de Rodadas:</label>
                 <input type="text" name="rounds_number" id="rounds_number" class="form-control"
                   [(ngModel)]="tournament.rounds_number" />
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Critérios de Ordenação Inicial</th>
+                        <th>Opções</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let ordering of list_orderings_not_selected; let i = index">
+                        <td>
+                          {{i+1}} - {{getOrderingName(ordering.value)}} -
+                        </td>
+                        <td>
+                          <button type="button" class="btn btn-secondary btn-sm" (click)="addOrdering(ordering.value)">
+                            <fa-icon [icon]="add_icon"></fa-icon>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="col-md-6">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Critérios de Ordenação Inicial Selecionados</th>
+                        <th>Opções</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let ordering of tournament.ordering_sequence; let i = index">
+                        <td>
+                          {{i+1}} - {{getOrderingName(ordering)}}
+                        </td>
+                        <td>
+                          <button type="button" class="btn btn-secondary btn-sm" (click)="putToUpOrdering(i)" *ngIf="i != 0">
+                            <fa-icon [icon]="up_icon"></fa-icon>
+                          </button>
+                          <button type="button" class="btn btn-secondary btn-sm"
+                            (click)="putToDownOrdering(i)" *ngIf="(i + 1) < tournament.ordering_sequence.length">
+                            <fa-icon [icon]="down_icon"></fa-icon>
+                          </button>
+                          <button type="button" class="btn btn-danger btn-sm" (click)="removeOrdering(i)">
+                            <fa-icon [icon]="x_icon"></fa-icon>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
               <hr />
               <button class="btn btn-primary" type="button" (click)="save()">Salvar</button>

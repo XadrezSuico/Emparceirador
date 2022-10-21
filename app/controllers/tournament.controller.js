@@ -13,6 +13,16 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.tournaments.update', update)
 }
 
+
+
+module.exports.listAll = listAll;
+module.exports.listFromEvent = listFromEvent;
+module.exports.create = create;
+module.exports.get = get;
+module.exports.update = update;
+
+
+
 async function create(event, event_uuid, tournament){
   try {
       let resultadoCreate = await Tournaments.create({
@@ -20,6 +30,7 @@ async function create(event, event_uuid, tournament){
           tournament_type: tournament.tournament_type,
           rounds_number: tournament.rounds_number,
           eventUuid: event_uuid,
+          ordering_sequence:tournament.ordering_sequence
       })
       console.log(resultadoCreate);
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
@@ -39,6 +50,7 @@ async function listAll() {
         name: tournament.name,
         tournament_type: tournament.tournament_type,
         rounds_number: tournament.rounds_number,
+        ordering_sequence:tournament.ordering_sequence,
       };
 
       tournaments_return[i++] = tournament_return;
@@ -64,6 +76,7 @@ async function listFromEvent(event,event_uuid) {
         name: tournament.name,
         tournament_type: tournament.tournament_type,
         rounds_number: tournament.rounds_number,
+        ordering_sequence:tournament.ordering_sequence,
       };
 
       tournaments_return[i++] = tournament_return;
@@ -84,6 +97,7 @@ async function get(e,uuid) {
       name: tournament.name,
       tournament_type: tournament.tournament_type,
       rounds_number: tournament.rounds_number,
+      ordering_sequence:tournament.ordering_sequence,
     };
 
     return {ok:1,error:0,tournament:tournament_return};
@@ -98,6 +112,7 @@ async function update(e,uuid,tournament){
           name: tournament.name,
           tournament_type: tournament.tournament_type,
           rounds_number: tournament.rounds_number,
+          ordering_sequence:tournament.ordering_sequence,
       },{
         where:{
           uuid:uuid
@@ -109,4 +124,17 @@ async function update(e,uuid,tournament){
         console.log(error);
     }
 
+}
+
+
+
+function getDefaultOrdering(){
+  [
+    "FIDE_RATING",
+    "NATIONAL_RATING",
+    "XADREZSUICO_RATING",
+    "INTERNAL_RATING",
+    "BORNDATE",
+    "ALPHABETICAL"
+  ]
 }

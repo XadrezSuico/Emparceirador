@@ -1,7 +1,11 @@
 const database = require('../db/db');
 const Players = require('../models/player.model');
+const CategoriesController = require('../controllers/category.controller');
+const TournamentsController = require('../controllers/tournament.controller');
 
 const dateHelper = require("../helpers/date.helper");
+const orderingHelper = require("../helpers/ordering.helper");
+const Tournaments = require('../models/tournament.model');
 
 module.exports.setEvents = (ipcMain) => {
   database.sync();
@@ -12,6 +16,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.players.get', get)
   ipcMain.handle('model.players.update', update)
   ipcMain.handle('model.players.remove', remove)
+  ipcMain.handle('model.players.reorderPlayers', reorderPlayers)
 }
 
 async function create(event, tournament_uuid, player){
@@ -53,11 +58,15 @@ async function listAll() {
     let players_return = [];
     let i = 0;
     for(let player of players){
+      let category_get = await CategoriesController.get(null,player.categoryUuid);
+
       let player_return = {
         uuid: player.uuid,
+        start_number: player.start_number,
         name: player.name,
         city: player.city,
         club: player.club,
+        category: (category_get.ok === 1) ? category_get.category : null,
 
         borndate: (player.borndate) ? dateHelper.convertToBr(player.borndate) : null,
 
@@ -84,23 +93,47 @@ async function listAll() {
   }
 }
 
-async function listFromTournament(event,tournament_uuid) {
+async function listFromTournament(event,tournament_uuid, orderings = []) {
   try {
-    let players = await Players.findAll({
-      where: {
-        tournamentUuid: tournament_uuid
+    let players;
+    if(orderings.length > 0){
+      let orders = [];
+
+      let j = 0;
+      for(let ordering of orderings){
+        let ordering_sql = orderingHelper.orderingSqlField(ordering);
+        if(ordering_sql){
+          orders[j++] = ordering_sql;
+        }
       }
-    });
+
+      players = await Players.findAll({
+        where: {
+          tournamentUuid: tournament_uuid
+        },
+        order: orders
+      });
+    }else{
+      players = await Players.findAll({
+        where: {
+          tournamentUuid: tournament_uuid
+        }
+      });
+    }
+
+
     let players_return = [];
     let i = 0;
     for(let player of players){
-      console.log(player.borndate);
+      let category_get = await CategoriesController.get(null,player.categoryUuid);
 
       let player_return = {
         uuid: player.uuid,
+        start_number: player.start_number,
         name: player.name,
         city: player.city,
         club: player.club,
+        category: (category_get.ok === 1) ? category_get.category : null,
 
         borndate: (player.borndate) ? dateHelper.convertToBr(player.borndate) : null,
 
@@ -132,11 +165,15 @@ async function get(e,uuid) {
   try {
     let player = await Players.findByPk(uuid);
 
+    let category_get = await CategoriesController.get(null,player.categoryUuid);
+
     let player_return = {
       uuid: player.uuid,
+      start_number: player.start_number,
       name: player.name,
       city: player.city,
       club: player.club,
+      category: (category_get.ok === 1) ? category_get.category : null,
 
       borndate: (player.borndate) ? dateHelper.convertToBr(player.borndate) : null,
 
@@ -164,6 +201,8 @@ async function get(e,uuid) {
 async function update(e,player){
   try {
       let resultado = await Players.update({
+        start_number: player.start_number,
+
         name: player.name,
         city: player.city,
         club: player.club,
@@ -197,7 +236,7 @@ async function update(e,player){
 }
 
 async function getLastNumber(tournament_uuid){
-  let retorno = listFromTournament(null,tournament_uuid);
+  let retorno = await listFromTournament(null,tournament_uuid);
   if(retorno.ok == 1){
     if(retorno.players.length > 0){
       return retorno.players.length;
@@ -220,6 +259,45 @@ async function remove(e,uuid) {
     }else{
       return {ok:0,error:1,message:"Jogador não encontrado"};
     }
+
+  } catch (error) {
+      console.log(error);
+  }
+}
+
+
+async function reorderPlayers(e,tournament_uuid) {
+  try {
+    let retorno_tournament = await TournamentsController.get(null,tournament_uuid);
+    if(retorno_tournament.ok === 1){
+      let tournament = retorno_tournament.tournament;
+
+      let retorno_players = await listFromTournament(e,tournament_uuid);
+
+      if(retorno_players.ok === 1){
+        for(let player of retorno_players.players){
+          player.start_number = 0;
+
+          update(null,player);
+        }
+
+        let retorno_players_to_order = await listFromTournament(e,tournament_uuid,tournament.ordering_sequence);
+
+        if(retorno_players_to_order.ok === 1){
+          i = 1;
+          for(let player of retorno_players_to_order.players){
+            player.start_number = i++;
+            console.log(player.start_number);
+
+            update(null,player);
+          }
+        }
+      }
+
+
+      return {ok:1,error:0};
+    }
+    return {ok:0,error:1,message:""};
 
   } catch (error) {
       console.log(error);

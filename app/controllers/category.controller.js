@@ -14,6 +14,13 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.categories.remove', remove)
 }
 
+module.exports.create = create;
+module.exports.listAll = listAll;
+module.exports.listFromTournament = listFromTournament;
+module.exports.get = get;
+module.exports.update = update;
+module.exports.remove = remove;
+
 async function create(event, tournament_uuid, category){
   try {
       let resultadoCreate = await Categories.create({

@@ -10,4 +10,6 @@ export interface Pair{
   player_b:string; // player's uuid
   player_b_result?:number; // 1, 0.5, 0
   player_b_wo:boolean;
+
+  is_bye:boolean;
 }

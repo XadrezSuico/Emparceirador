@@ -127,12 +127,14 @@
 
 
 <button class="btn btn-outline-primary" (click)="new_player(playerForm)">Novo Jogador</button>
+<button class="btn btn-outline-primary" (click)="reorderPlayers()">Reordenar Jogadores</button>
 <table class="table table-striped" *ngIf="players">
   <thead>
     <tr>
       <th scope="col">No. Inicial</th>
       <th scope="col">Nome</th>
       <th scope="col">Data de Nascimento</th>
+      <th scope="col">Categoria</th>
       <th scope="col">Rating<br />Interno</th>
       <th scope="col">Rating<br />XadrezSuíço</th>
       <th scope="col">Rating<br />Nacional</th>
@@ -147,6 +149,10 @@
       <td>{{player.start_number}}</td>
       <td>{{player.name}}</td>
       <td>{{player.borndate}}</td>
+
+      <td *ngIf="player.category">{{player.category.name}}</td>
+      <td *ngIf="!player.category">-</td>
+
       <td>{{player.int_rating}}</td>
       <td>{{player.xz_rating}}</td>
       <td>{{player.nat_rating}}</td>

@@ -18,7 +18,7 @@ const Players = database.define('players', {
   },
   start_number: {
     type: Sequelize.INTEGER,
-    allowNull: false
+    allowNull: true
   },
   borndate: {
     type: Sequelize.DATE,

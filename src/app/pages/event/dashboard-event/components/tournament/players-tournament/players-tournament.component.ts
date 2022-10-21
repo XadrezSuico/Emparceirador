@@ -1,3 +1,4 @@
+import { Ordering } from './../../../../../../_interfaces/_enums/_ordering';
 import { Component, Input, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ElectronService } from '../../../../../../core/services';
@@ -48,7 +49,7 @@ export class PlayersTournamentComponent implements OnInit {
     }
   }
   async list(){
-    let  retorno = await this.electronService.ipcRenderer.invoke("model.players.listByTournament", this.tournament_uuid);
+    let  retorno = await this.electronService.ipcRenderer.invoke("model.players.listByTournament", this.tournament_uuid, [Ordering.START_NUMBER, Ordering.ALPHABETICAL]);
     if(retorno.ok){
       this.players = retorno.players;
     }
@@ -115,6 +116,14 @@ export class PlayersTournamentComponent implements OnInit {
 
   async remove(uuid){
     let retorno = await this.electronService.ipcRenderer.invoke("model.players.remove", uuid);
+    if(retorno.ok){
+      this.list();
+    }
+  }
+
+
+  async reorderPlayers(){
+    let retorno = await this.electronService.ipcRenderer.invoke("model.players.reorderPlayers", this.tournament_uuid);
     if(retorno.ok){
       this.list();
     }

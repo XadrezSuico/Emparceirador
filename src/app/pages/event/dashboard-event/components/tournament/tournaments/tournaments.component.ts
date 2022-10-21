@@ -1,4 +1,5 @@
 import { Component, Input, OnInit, AfterViewInit } from '@angular/core';
+import { faChess, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { ElectronService } from '../../../../../../core/services';
 import { Tournament } from '../../../../../../_interfaces/tournament';
 
@@ -8,6 +9,8 @@ import { Tournament } from '../../../../../../_interfaces/tournament';
   styleUrls: ['./tournaments.component.scss']
 })
 export class TournamentsComponent implements OnInit, AfterViewInit {
+  tournament_icon = faChess;
+  new_icon = faPlusCircle;
 
   @Input()
   event_uuid;

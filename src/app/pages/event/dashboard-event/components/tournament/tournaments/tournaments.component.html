@@ -1,12 +1,12 @@
 <nav ngbNav #nav="ngbNav" class="nav-tabs">
   <ng-container ngbNavItem>
-    <a ngbNavLink>Novo Torneio</a>
+    <a ngbNavLink><fa-icon [icon]="new_icon"></fa-icon>Novo Torneio</a>
     <ng-template ngbNavContent>
       <app-dashboard-tournament [event_uuid]="event_uuid" (new_tournament_event_emitter)="onNewTournament($event)"></app-dashboard-tournament>
     </ng-template>
   </ng-container>
   <ng-container ngbNavItem *ngFor="let tournament of tournaments">
-    <a ngbNavLink>{{tournament.name}}</a>
+    <a ngbNavLink><fa-icon [icon]="tournament_icon"></fa-icon> {{tournament.name}}</a>
     <ng-template ngbNavContent>
       <app-dashboard-tournament [event_uuid]="event_uuid" [tournament_uuid]="tournament.uuid"></app-dashboard-tournament>
     </ng-template>

@@ -35,9 +35,11 @@
     </div>
     <div class="col-md-4">
       Rodada:
-      <select>
-        <option value="0">0</option>
-      </select>
+      <form #form="ngForm">
+        <select name="round_number" id="round_number" [(ngModel)]="selected_round_number" (change)="onRoundChange()">
+          <option *ngFor="let in of counter(last_round_number); let i = index" value="{{i}}">{{i}}</option>
+        </select>
+      </form>
     </div>
   </div>
   <hr/>
@@ -53,7 +55,15 @@
     <ng-container ngbNavItem>
       <a ngbNavLink><fa-icon [icon]="pairings_icon"></fa-icon> Emparceiramentos</a>
       <ng-template ngbNavContent>
-        <app-pairings-tournament [tournament_uuid]="tournament_uuid"></app-pairings-tournament>
+        <app-pairings-tournament
+          [tournament_uuid]="tournament_uuid"
+
+          [last_round_number]="last_round_number"
+          [selected_round_number]="selected_round_number"
+          [tournament]="tournament"
+
+          (new_round_emitter)="onNewRound($event)"
+        ></app-pairings-tournament>
       </ng-template>
     </ng-container>
 

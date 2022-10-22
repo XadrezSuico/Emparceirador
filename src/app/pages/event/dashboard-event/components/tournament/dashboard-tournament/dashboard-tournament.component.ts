@@ -1,10 +1,14 @@
+import { CategoriesTournamentComponent } from './../categories-tournament/categories-tournament.component';
+import { PlayersTournamentComponent } from './../players-tournament/players-tournament.component';
+import { PairingsTournamentComponent } from './../pairings-tournament/pairings-tournament.component';
 import { Ordering } from './../../../../../../_interfaces/_enums/_ordering';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { faArrowAltCircleDown, faArrowAltCircleUp, faEdit, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons';
 import { faChessBoard, faMedal, faUsers, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { ElectronService } from '../../../../../../core/services';
 import { Tournament } from '../../../../../../_interfaces/tournament';
 import { TournamentType } from '../../../../../../_interfaces/_enums/_tournament_type';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-tournament',
@@ -22,6 +26,15 @@ export class DashboardTournamentComponent implements OnInit {
   up_icon = faArrowAltCircleUp;
   down_icon = faArrowAltCircleDown;
   x_icon = faTimesCircle;
+
+  @ViewChild(PlayersTournamentComponent)
+  private playersTournamentComponent: PlayersTournamentComponent;
+
+  @ViewChild(PairingsTournamentComponent)
+  private pairingsTournamentComponent: PairingsTournamentComponent;
+
+  @ViewChild(CategoriesTournamentComponent)
+  private categoriesTournamentComponent: CategoriesTournamentComponent;
 
   list_orderings = [
     {
@@ -70,6 +83,10 @@ export class DashboardTournamentComponent implements OnInit {
     tournament_type: TournamentType.SWISS,
     ordering_sequence: []
   };
+
+  last_round_number:number = 0;
+  selected_round_number:number = 0;
+
   constructor(
     private electronService: ElectronService
   ) { }
@@ -81,11 +98,23 @@ export class DashboardTournamentComponent implements OnInit {
   }
 
   async get(){
-    let  retorno = await this.electronService.ipcRenderer.invoke("model.tournaments.get", this.tournament_uuid);
+    let retorno = await this.electronService.ipcRenderer.invoke("model.tournaments.get", this.tournament_uuid);
     if(retorno.ok){
       this.tournament = retorno.tournament;
 
       this.registerNotSelectedOrdering();
+
+      this.getLastRound();
+    }
+  }
+
+  async getLastRound(){
+    let retorno = await this.electronService.ipcRenderer.invoke("model.rounds.getLastRound", this.tournament_uuid);
+    if(retorno.ok){
+      this.last_round_number = retorno.round.number;
+      this.selected_round_number = retorno.round.number;
+
+      // if(this.pairingsTournamentComponent) this.pairingsTournamentComponent.newRoundEvent(this.selected_round_number);
     }
   }
 
@@ -116,7 +145,11 @@ export class DashboardTournamentComponent implements OnInit {
   }
 
   getTournamentStatus(){
-    return "Aguardando Emparceiramento Inicial";
+    if(this.last_round_number === 0){
+      return "Aguardando Emparceiramento Inicial";
+    }else{
+      return "Rodada ".concat(String(this.last_round_number)).concat(" - Aguardando Resultados");
+    }
   }
 
 
@@ -153,6 +186,29 @@ export class DashboardTournamentComponent implements OnInit {
     }
   }
 
+  async onNewRound(event:string){
+    let retorno = await this.electronService.ipcRenderer.invoke("model.rounds.get",event);
+    if(retorno.ok == 1){
+      this.last_round_number = retorno.round.number;
+      this.selected_round_number = this.last_round_number;
+    }
+    console.log(retorno);
+  }
+
+  async onRoundChange(){
+    // alert("round changed - number: ".concat(String(this.selected_round_number)));
+    // if(this.pairingsTournamentComponent) this.pairingsTournamentComponent.roundChangedEvent(this.selected_round_number);
+  }
+
+  async getRoundsNumber(){
+    let number:Array<number> = [];
+
+    for(let i = 0; i < this.last_round_number; i++){
+      number[i] = i;
+    }
+
+    return number;
+  }
 
   addOrdering(ordering){
     if(this.tournament.ordering_sequence){
@@ -194,6 +250,11 @@ export class DashboardTournamentComponent implements OnInit {
         this.registerNotSelectedOrdering();
       }
     }
+  }
+
+
+  counter(i: number) {
+    return new Array(i+1);
   }
 
 }

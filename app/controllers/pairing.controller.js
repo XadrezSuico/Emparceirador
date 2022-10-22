@@ -14,6 +14,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.pairings.get', get)
   ipcMain.handle('model.pairings.update', update)
   ipcMain.handle('model.pairings.remove', remove)
+  ipcMain.handle('model.pairings.isAllPairingsWithResult', isAllPairingsWithResult)
 }
 
 module.exports.listAll = listAll;
@@ -23,6 +24,7 @@ module.exports.create = create;
 module.exports.get = get;
 module.exports.update = update;
 module.exports.remove = remove;
+module.exports.isAllPairingsWithResult = isAllPairingsWithResult;
 
 async function create(event, round_uuid, pairing){
   console.log("PairingsController.create");
@@ -41,6 +43,8 @@ async function create(event, round_uuid, pairing){
         resultadoCreate = await Pairings.create({
           number: pairing.number,
           player_a_uuid: pairing.player_a_uuid,
+          player_a_result: 1,
+          player_b_result: 0,
           is_bye: true,
 
           roundUuid: round_uuid,
@@ -179,3 +183,18 @@ async function remove(e,uuid) {
   }
 }
 
+
+
+async function isAllPairingsWithResult(e,round_uuid){
+  let list_from_round = await listFromRound(null,round_uuid)
+  if(list_from_round.ok === 1){
+    for(let pairing of list_from_round.pairings){
+      if(!(pairing.player_a_result) && !(pairing.player_b_result)){
+        return {ok:1,error:0,result:false,message:"Rodada possui ainda resultados pendentes"}
+      }
+    }
+    return {ok:1,error:0,result:true}
+  }else{
+    return {ok:0,error:1,message:"Erro desconhecido"}
+  }
+}

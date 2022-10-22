@@ -18,6 +18,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.rounds.update', update)
   ipcMain.handle('model.rounds.getLastRound', getLastRound)
   ipcMain.handle('model.rounds.generateRound', generateRound)
+  ipcMain.handle('model.rounds.canGenerateNewRound', canGenerateNewRound)
 }
 
 async function create(event, tournament_uuid, round){
@@ -295,7 +296,7 @@ async function saveSwissPairings(tournament,number,pairings){
         let pairing_create = await PairingsController.create(null,round_uuid,request_pairing);
       }
 
-      return {ok:1,error:0};
+      return {ok:1,error:0,data:{number:number,uuid:round_uuid}};
     }
   }
   return {ok:0,error:1,message:"Erro ainda desconhecido"};
@@ -303,4 +304,30 @@ async function saveSwissPairings(tournament,number,pairings){
 
 async function generateRoundSchuring(){
 
+}
+
+async function canGenerateNewRound(e, tournament_uuid){
+  let tournament_request = await TournamentsController.get(null,tournament_uuid)
+  if(tournament_request.ok === 1){
+    let tournament = tournament_request.tournament;
+    let get_last_round = await getLastRound(null,tournament_uuid);
+    if(get_last_round.ok === 1){
+      let last_round = get_last_round.round;
+      if(tournament.tournament_type == "SWISS"){
+        if(tournament.rounds_number === last_round.number){
+          return {ok:1,error:0,result:false,message:"Última rodada, não é possível gerar nova rodada"}
+        }else{
+          let get_is_all_pairings_with_result = await PairingsController.isAllPairingsWithResult(null,last_round.uuid);
+          if(get_is_all_pairings_with_result.ok === 1){
+            if(get_is_all_pairings_with_result.result){
+              return {ok:1,error:0,result:true}
+            }else{
+              return {ok:1,error:0,result:false,message:get_is_all_pairings_with_result.message}
+            }
+          }
+        }
+      }
+    }
+  }
+  return {ok:0,error:1,message:"Erro inesperado"}
 }

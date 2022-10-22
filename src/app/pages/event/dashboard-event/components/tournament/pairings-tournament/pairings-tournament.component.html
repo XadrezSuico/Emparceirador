@@ -1,3 +1,4 @@
-<h5>Rodada Atual: 0</h5>
-<h6>Status: Apto para emparceiramento.</h6>
-<button type="button" class="btn btn-lg btn-primary" (click)="generateRound()">Emparceirar Rodada</button>
+<h5>Rodada Atual: {{last_round_number}}</h5>
+<h5>Rodada Selecionada: {{selected_round_number}}</h5>
+<h6>Status: {{selected_round_status.message}}.</h6>
+<button type="button" class="btn btn-lg btn-primary" (click)="generateRound()" *ngIf="this.selected_round_status.can_pairing">Emparceirar Rodada</button>

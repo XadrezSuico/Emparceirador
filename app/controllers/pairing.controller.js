@@ -88,7 +88,10 @@ async function listFromRound(event,round_uuid) {
     let pairings = await Pairings.findAll({
       where: {
         roundUuid: round_uuid
-      }
+      },
+      order:[
+        ["number","ASC"]
+      ]
     });
 
 

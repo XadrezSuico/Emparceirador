@@ -17,6 +17,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('model.rounds.get', get)
   ipcMain.handle('model.rounds.update', update)
   ipcMain.handle('model.rounds.getLastRound', getLastRound)
+  ipcMain.handle('model.rounds.getByNumber', getByNumber)
   ipcMain.handle('model.rounds.generateRound', generateRound)
   ipcMain.handle('model.rounds.canGenerateNewRound', canGenerateNewRound)
 }
@@ -80,6 +81,26 @@ async function listFromTournament(event,tournament_uuid) {
 async function get(e,uuid) {
   try {
     let round = await Rounds.findByPk(uuid);
+
+    let round_return = {
+      uuid: round.uuid,
+      number: round.number,
+    };
+
+    return {ok:1,error:0,round:round_return};
+  } catch (error) {
+      console.log(error);
+  }
+}
+
+async function getByNumber(e,tournament_uuid,number) {
+  try {
+    let round = await Rounds.findOne({
+      where: {
+        tournamentUuid:tournament_uuid,
+        number:number
+      }
+    });
 
     let round_return = {
       uuid: round.uuid,

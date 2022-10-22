@@ -1,9 +1,9 @@
-import { Pair } from "./pair";
+import { Pairing } from "./pairing";
 
 export interface Round{
   uuid:string;
   id?:number;
   number:number; // round's number
 
-  pairings:Array<Pair>;
+  pairings:Array<Pairing>;
 }

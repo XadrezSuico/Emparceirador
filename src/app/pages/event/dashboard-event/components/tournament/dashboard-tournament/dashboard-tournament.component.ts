@@ -87,6 +87,10 @@ export class DashboardTournamentComponent implements OnInit {
   last_round_number:number = 0;
   selected_round_number:number = 0;
 
+  tournament_status = {
+    message: ""
+  }
+
   constructor(
     private electronService: ElectronService
   ) { }
@@ -104,7 +108,9 @@ export class DashboardTournamentComponent implements OnInit {
 
       this.registerNotSelectedOrdering();
 
-      this.getLastRound();
+      await this.getLastRound();
+
+      await this.onResultChange();
     }
   }
 
@@ -191,6 +197,8 @@ export class DashboardTournamentComponent implements OnInit {
     if(retorno.ok == 1){
       this.last_round_number = retorno.round.number;
       this.selected_round_number = this.last_round_number;
+
+      this.onResultChange();
     }
     console.log(retorno);
   }
@@ -255,6 +263,62 @@ export class DashboardTournamentComponent implements OnInit {
 
   counter(i: number) {
     return new Array(i+1);
+  }
+
+
+  async onResultChange(){
+    if(Number(this.selected_round_number) === Number(this.last_round_number)){
+      if(this.last_round_number === 0){
+        this.tournament_status = {
+          message: "Aguardando Emparceiramento Inicial"
+        }
+      }else if(Number(this.tournament.rounds_number) === this.last_round_number){
+        let retorno_last_round = await this.electronService.ipcRenderer.invoke("model.rounds.getLastRound", this.tournament_uuid);
+        if(retorno_last_round.ok === 1){
+          let retorno = await this.electronService.ipcRenderer.invoke("model.pairings.isAllPairingsWithResult", retorno_last_round.round.uuid);
+          if(retorno.ok === 1){
+            if(retorno.result){
+              this.tournament_status = {
+                message: "Torneio Finalizado"
+              }
+            }else{
+              this.tournament_status = {
+                message: "Última rodada - Aguardando resultados"
+              }
+            }
+          }else{
+            this.tournament_status = {
+              message: "Última rodada."
+            }
+          }
+        }else{
+          this.tournament_status = {
+            message: "Última rodada"
+          }
+        }
+      }else{
+        let  retorno = await this.electronService.ipcRenderer.invoke("model.rounds.canGenerateNewRound", this.tournament_uuid);
+        if(retorno.ok){
+          if(retorno.result){
+            this.tournament_status = {
+              message: "Apta para emparceiramento"
+            }
+          }else{
+            this.tournament_status = {
+              message: retorno.message
+            }
+          }
+        }else{
+          this.tournament_status = {
+            message: "-"
+          }
+        }
+      }
+    }else{
+      this.tournament_status = {
+        message: "A rodada selecionada não é a mais atual"
+      }
+    }
   }
 
 }

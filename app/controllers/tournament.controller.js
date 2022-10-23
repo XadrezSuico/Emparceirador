@@ -1,6 +1,8 @@
 const database = require('../db/db');
 const Tournaments = require('../models/tournament.model');
 
+const PairingsController = require('./pairing.controller');
+
 const dateHelper = require("../helpers/date.helper");
 
 module.exports.setEvents = (ipcMain) => {
@@ -20,6 +22,7 @@ module.exports.listFromEvent = listFromEvent;
 module.exports.create = create;
 module.exports.get = get;
 module.exports.update = update;
+module.exports.getPlayerPoints = getPlayerPoints;
 
 
 
@@ -124,6 +127,23 @@ async function update(e,uuid,tournament){
         console.log(error);
     }
 
+}
+
+
+async function getPlayerPoints(e,uuid,player_uuid) {
+  try {
+    let tournament = await Tournaments.findByPk(uuid);
+    if(tournament){
+      let player_pairings_request = await PairingsController.listPlayerPairings(null,uuid,player_uuid);
+
+      if(player_pairings_request.ok === 1){
+        return {ok:1,error:0,points:player_pairings_request.points};
+      }
+    }
+  } catch (error) {
+      console.log(error);
+  }
+  return {ok:0,error:1,message:"Erro desconhecido"}
 }
 
 

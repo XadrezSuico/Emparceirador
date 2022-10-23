@@ -25,4 +25,6 @@ export interface Player{
 
   fide_id?:number;
   fide_rating?:number;
+
+  temporary_tournament_info?:any;
 }

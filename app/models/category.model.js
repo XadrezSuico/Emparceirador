@@ -1,6 +1,5 @@
 const Sequelize = require('sequelize');
 const database = require('../db/db');
-const Players = require('./player.model');
 
 const Categories = database.define('categories', {
   id: {
@@ -21,7 +20,5 @@ const Categories = database.define('categories', {
     allowNull: true
   },
 })
-
-Categories.hasMany(Players)
 
 module.exports = Categories;

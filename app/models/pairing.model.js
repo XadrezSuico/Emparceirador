@@ -1,5 +1,7 @@
 const Sequelize = require('sequelize');
 const database = require('../db/db');
+const Players = require('./player.model');
+const Rounds = require('./round.model');
 
 const Pairings = database.define('pairings', {
   id: {
@@ -46,11 +48,27 @@ const Pairings = database.define('pairings', {
   },
 
 
+  have_result: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false,
+    allowNull: true
+  },
   is_bye: {
     type: Sequelize.BOOLEAN,
     defaultValue: false,
     allowNull: true
   },
 })
+Pairings.belongsTo(Rounds)
+
+Pairings.belongsTo(Players,{
+  foreignKey: "player_a_uuid",
+  as: "player_a"
+})
+Pairings.belongsTo(Players,{
+  foreignKey: "player_b_uuid",
+  as: "player_b"
+})
+
 
 module.exports = Pairings;

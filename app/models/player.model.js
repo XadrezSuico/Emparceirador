@@ -1,8 +1,7 @@
 const Sequelize = require('sequelize');
 const database = require('../db/db');
 const moment = require('moment');
-
-const Pairings = require("./pairing.model")
+const Categories = require('./category.model');
 
 const Players = database.define('players', {
   id: {
@@ -74,13 +73,13 @@ const Players = database.define('players', {
     type: Sequelize.INTEGER,
     allowNull: true
   },
+
+  temporary_tournament_info: {
+    type: Sequelize.JSON,
+    allowNull: true
+  },
 })
 
-Players.hasMany(Pairings,{
-  foreignKey: "player_a_uuid"
-})
-Players.hasMany(Pairings,{
-  foreignKey: "player_b_uuid"
-})
+Players.belongsTo(Categories)
 
 module.exports = Players;

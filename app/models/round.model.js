@@ -1,8 +1,6 @@
 const Sequelize = require('sequelize');
 const database = require('../db/db');
 
-const Pairings = require("./pairing.model")
-
 const Rounds = database.define('rounds', {
   id: {
     type: Sequelize.INTEGER,
@@ -18,7 +16,5 @@ const Rounds = database.define('rounds', {
     allowNull: false
   },
 })
-
-Rounds.hasMany(Pairings)
 
 module.exports = Rounds;

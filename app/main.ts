@@ -4,7 +4,7 @@ import * as fs from 'fs';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
-  serve = args.some(val => val === '--serve');
+  serve = args.some(val => val === '--serve --inspect=5858');
 
 
 function createWindow(): BrowserWindow {

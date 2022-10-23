@@ -124,16 +124,21 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
 
   async getPairings(){
     this.row_selected = -1;
+    console.log("Round Selected: ".concat(String(this.selected_round_number)));
 
-    let retorno = await this.electronService.ipcRenderer.invoke("model.rounds.getByNumber", this.tournament_uuid, this.selected_round_number);
-    if(retorno.ok === 1){
-      let round = retorno.round;
-      let result_pairings = await this.electronService.ipcRenderer.invoke("model.pairings.listByRound", round.uuid);
-      if(result_pairings.ok === 1){
-        this.pairings = result_pairings.pairings;
+    if(this.selected_round_number > 0){
+      let retorno = await this.electronService.ipcRenderer.invoke("model.rounds.getByNumber", this.tournament_uuid, this.selected_round_number);
+      if(retorno.ok === 1){
+        let round = retorno.round;
+        let result_pairings = await this.electronService.ipcRenderer.invoke("model.pairings.listByRound", round.uuid);
+        if(result_pairings.ok === 1){
+          this.pairings = result_pairings.pairings;
 
-        this.updatePlayersName();
+          // this.updatePlayersName();
+        }
       }
+    }else{
+      this.pairings = [];
     }
   }
 
@@ -158,22 +163,25 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   }
 
   getPairingResult(pairing){
-    if(pairing.player_a_result || pairing.player_b_result){
-      if(pairing.is_bye){
-        return "".concat(String(pairing.player_a_result)).concat("");
+    if(pairing.have_result){
+      if(pairing.player_a_result || pairing.player_b_result){
+        if(pairing.is_bye){
+          return "".concat(String(pairing.player_a_result)).concat("");
+        }
+        if(pairing.player_a_result && pairing.player_b_wo){
+          return "+ | -";
+        }
+        if(pairing.player_b_result && pairing.player_a_wo){
+          return "- | +";
+        }
+        return "".concat(String(pairing.player_a_result)).concat(" | ").concat(String(pairing.player_b_result));
+      }else if(pairing.player_a_wo && pairing.player_b_wo){
+        return "- | -"
+      }else{
+        return "".concat(String(pairing.player_a_result)).concat(" | ").concat(String(pairing.player_b_result));
       }
-      if(pairing.player_a_result && pairing.player_b_wo){
-        return "+ | -";
-      }
-      if(pairing.player_b_result && pairing.player_a_wo){
-        return "- | +";
-      }
-      return "".concat(String(pairing.player_a_result)).concat(" | ").concat(String(pairing.player_b_result));
-    }else if(pairing.player_a_wo && pairing.player_b_wo){
-      return "- | -"
-    }else{
-      return "|";
     }
+    return "|";
   }
 
 
@@ -181,10 +189,8 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   row_selected = -1;
 
   selectRow(number){
-    if(this.row_selected != number){
+    if(this.row_selected != number && number < this.pairings.length){
       this.row_selected = number;
-    }else{
-      this.row_selected = -1;
     }
   }
 
@@ -195,6 +201,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.pairings[this.row_selected].player_b_result = null;
         this.pairings[this.row_selected].player_a_wo = null;
         this.pairings[this.row_selected].player_b_wo = null;
+        this.pairings[this.row_selected].have_result = false;
 
         this.updateResult(this.pairings[this.row_selected]);
       }
@@ -208,8 +215,13 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.pairings[this.row_selected].player_b_result = player_b;
         this.pairings[this.row_selected].player_a_wo = false;
         this.pairings[this.row_selected].player_b_wo = false;
+        this.pairings[this.row_selected].have_result = true;
 
         this.updateResult(this.pairings[this.row_selected]);
+
+        if(this.row_selected + 1 < this.pairings.length){
+          this.row_selected++;
+        }
       }
     }
   }
@@ -220,8 +232,13 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.pairings[this.row_selected].player_b_result = player_b;
         this.pairings[this.row_selected].player_a_wo = (player_a) ? false : true;
         this.pairings[this.row_selected].player_b_wo = (player_b) ? false : true;
+        this.pairings[this.row_selected].have_result = true;
 
         this.updateResult(this.pairings[this.row_selected]);
+
+        if(this.row_selected + 1 < this.pairings.length){
+          this.row_selected++;
+        }
       }
     }
   }

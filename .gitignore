@@ -52,3 +52,4 @@ testem.log
 Thumbs.db
 
 *.sqlite
+result.txt

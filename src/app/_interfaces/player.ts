@@ -1,6 +1,7 @@
 import { Category } from './category';
 import { City } from './city';
 import { Club } from './club';
+import { Standing } from './standing';
 
 export interface Player{
   uuid:string;
@@ -26,5 +27,5 @@ export interface Player{
   fide_id?:number;
   fide_rating?:number;
 
-  temporary_tournament_info?:any;
+  standings?:Array<Standing>;
 }

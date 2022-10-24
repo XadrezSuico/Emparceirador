@@ -20,7 +20,7 @@ export class ListEventsComponent implements OnInit {
   }
 
   async getEvents(){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.events.listAll");
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.events.listAll");
     if(retorno.ok == 1){
       this.events = retorno.events;
     }

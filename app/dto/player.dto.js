@@ -1,4 +1,5 @@
 const CategoryDTO = require('./category.dto');
+const StandingDTO = require('./standing_wop.dto');
 const dateHelper = require('../helpers/date.helper');
 
 module.exports.convertToExport = async (player) => {
@@ -8,7 +9,7 @@ module.exports.convertToExport = async (player) => {
     name: player.name,
     city: player.city,
     club: player.club,
-    category: (player.category === 1) ? CategoryDTO.convertToExport(player.category) : null,
+    category: (player.category) ? await CategoryDTO.convertToExport(player.category) : null,
 
     borndate: (player.borndate) ? dateHelper.convertToBr(player.borndate) : null,
 
@@ -28,6 +29,8 @@ module.exports.convertToExport = async (player) => {
     tournament_uuid: player.tournamentUuid,
 
     temporary_tournament_info: player.temporary_tournament_info,
+
+    standings: (player.standings) ? await StandingDTO.convertToExportList(player.standings) : null,
   }
 }
 

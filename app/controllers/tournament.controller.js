@@ -5,14 +5,16 @@ const PairingsController = require('./pairing.controller');
 
 const dateHelper = require("../helpers/date.helper");
 
+const TournamentDTO = require("../dto/tournament.dto");
+
 module.exports.setEvents = (ipcMain) => {
   database.sync();
 
-  ipcMain.handle('model.tournaments.listAll', listAll)
-  ipcMain.handle('model.tournaments.listFromEvent', listFromEvent)
-  ipcMain.handle('model.tournaments.create', create)
-  ipcMain.handle('model.tournaments.get', get)
-  ipcMain.handle('model.tournaments.update', update)
+  ipcMain.handle('controller.tournaments.listAll', listAll)
+  ipcMain.handle('controller.tournaments.listFromEvent', listFromEvent)
+  ipcMain.handle('controller.tournaments.create', create)
+  ipcMain.handle('controller.tournaments.get', get)
+  ipcMain.handle('controller.tournaments.update', update)
 }
 
 
@@ -29,11 +31,12 @@ module.exports.getPlayerPoints = getPlayerPoints;
 async function create(event, event_uuid, tournament){
   try {
       let resultadoCreate = await Tournaments.create({
-          name: tournament.name,
-          tournament_type: tournament.tournament_type,
-          rounds_number: tournament.rounds_number,
-          eventUuid: event_uuid,
-          ordering_sequence:tournament.ordering_sequence
+        name: tournament.name,
+        tournament_type: tournament.tournament_type,
+        rounds_number: tournament.rounds_number,
+        eventUuid: event_uuid,
+        ordering_sequence:tournament.ordering_sequence,
+        tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
       })
       console.log(resultadoCreate);
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
@@ -53,7 +56,8 @@ async function listAll() {
         name: tournament.name,
         tournament_type: tournament.tournament_type,
         rounds_number: tournament.rounds_number,
-        ordering_sequence:tournament.ordering_sequence,
+        ordering_sequence: tournament.ordering_sequence,
+        tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
       };
 
       tournaments_return[i++] = tournament_return;
@@ -79,7 +83,8 @@ async function listFromEvent(event,event_uuid) {
         name: tournament.name,
         tournament_type: tournament.tournament_type,
         rounds_number: tournament.rounds_number,
-        ordering_sequence:tournament.ordering_sequence,
+        ordering_sequence: tournament.ordering_sequence,
+        tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
       };
 
       tournaments_return[i++] = tournament_return;
@@ -95,33 +100,30 @@ async function get(e,uuid) {
   try {
     let tournament = await Tournaments.findByPk(uuid);
 
-    let tournament_return = {
-      uuid: tournament.uuid,
-      name: tournament.name,
-      tournament_type: tournament.tournament_type,
-      rounds_number: tournament.rounds_number,
-      ordering_sequence:tournament.ordering_sequence,
-    };
-
-    return {ok:1,error:0,tournament:tournament_return};
+    if(tournament){
+      return { ok: 1, error: 0, tournament: await TournamentDTO.convertToExport(tournament) };
+    }
   } catch (error) {
       console.log(error);
   }
+  return { ok: 0, error: 1, message: "Torneio não encontrado" };
 }
+
 
 async function update(e,uuid,tournament){
   try {
       let resultado = await Tournaments.update({
-          name: tournament.name,
-          tournament_type: tournament.tournament_type,
-          rounds_number: tournament.rounds_number,
-          ordering_sequence:tournament.ordering_sequence,
+        name: tournament.name,
+        tournament_type: tournament.tournament_type,
+        rounds_number: tournament.rounds_number,
+        ordering_sequence: tournament.ordering_sequence,
+        tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
       },{
         where:{
           uuid:uuid
         }
       })
-      console.log(resultado);
+      // console.log(resultado);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);

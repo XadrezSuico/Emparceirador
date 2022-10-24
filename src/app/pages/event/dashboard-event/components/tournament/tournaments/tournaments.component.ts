@@ -29,7 +29,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit {
   }
 
   async getTournaments(){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.tournaments.listFromEvent",this.event_uuid);
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.listFromEvent",this.event_uuid);
     if(retorno.ok == 1){
       this.tournaments = retorno.tournaments;
     }
@@ -37,7 +37,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit {
   }
 
   async onNewTournament(event:string){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.tournaments.get",event);
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.get",event);
     if(retorno.ok == 1){
       this.tournaments[this.tournaments.length] = retorno.tournament;
     }else{

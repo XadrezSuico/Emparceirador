@@ -49,13 +49,13 @@ export class PlayersTournamentComponent implements OnInit {
     }
   }
   async list(){
-    let  retorno = await this.electronService.ipcRenderer.invoke("model.players.listByTournament", this.tournament_uuid, [Ordering.START_NUMBER, Ordering.ALPHABETICAL]);
+    let  retorno = await this.electronService.ipcRenderer.invoke("controller.players.listByTournament", this.tournament_uuid, [Ordering.START_NUMBER, Ordering.ALPHABETICAL]);
     if(retorno.ok){
       this.players = retorno.players;
     }
   }
   async categories_list(){
-    let  retorno = await this.electronService.ipcRenderer.invoke("model.categories.listFromTournament", this.tournament_uuid);
+    let  retorno = await this.electronService.ipcRenderer.invoke("controller.categories.listFromTournament", this.tournament_uuid);
     if(retorno.ok){
       this.categories = retorno.categories;
 
@@ -65,7 +65,7 @@ export class PlayersTournamentComponent implements OnInit {
 
 
   async get(content,uuid){
-    let  retorno = await this.electronService.ipcRenderer.invoke("model.players.get", uuid);
+    let  retorno = await this.electronService.ipcRenderer.invoke("controller.players.get", uuid);
     if(retorno.ok){
       this.player = retorno.player;
 
@@ -104,9 +104,9 @@ export class PlayersTournamentComponent implements OnInit {
   async save(){
     let retorno;
     if(this.player.uuid){
-      retorno = await this.electronService.ipcRenderer.invoke("model.players.update", this.player);
+      retorno = await this.electronService.ipcRenderer.invoke("controller.players.update", this.player);
     }else{
-      retorno = await this.electronService.ipcRenderer.invoke("model.players.create", this.tournament_uuid, this.player);
+      retorno = await this.electronService.ipcRenderer.invoke("controller.players.create", this.tournament_uuid, this.player);
     }
     if(retorno.ok){
       this.list();
@@ -115,7 +115,7 @@ export class PlayersTournamentComponent implements OnInit {
   }
 
   async remove(uuid){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.players.remove", uuid);
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.players.remove", uuid);
     if(retorno.ok){
       this.list();
     }
@@ -123,7 +123,7 @@ export class PlayersTournamentComponent implements OnInit {
 
 
   async reorderPlayers(){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.players.reorderPlayers", this.tournament_uuid);
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.players.reorderPlayers", this.tournament_uuid);
     if(retorno.ok){
       this.list();
     }

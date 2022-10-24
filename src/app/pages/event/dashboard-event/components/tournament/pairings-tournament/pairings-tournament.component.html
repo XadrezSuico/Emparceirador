@@ -9,18 +9,20 @@
     <h6>Status: {{selected_round_status.message}}.</h6>
   </div>
   <div class="col-md-12">
-    <button type="button" class="btn btn-lg btn-primary" (click)="generateRound()" *ngIf="this.selected_round_status.can_pairing">Emparceirar Rodada</button>
+    <button type="button" class="btn btn-lg btn-primary" (click)="generateRound()" *ngIf="selected_round_status.can_pairing">Emparceirar Rodada</button>
+    <button type="button" class="btn btn-sm btn-danger" (click)="unPairRound()" *ngIf="selected_round_status.can_unpair && last_round_number > 0">Desfazer Rodada</button>
   </div>
 </div>
 <hr/>
-    <button type="button" class="btn btn-sm btn-primary" (click)="setEmptyResult()" *ngIf="this.row_selected >= 0">Vazio</button>
-    <button type="button" class="btn btn-sm btn-primary" (click)="setResult(1,0)" *ngIf="this.row_selected >= 0">1 | 0</button>
-    <button type="button" class="btn btn-sm btn-primary" (click)="setResult(0,1)" *ngIf="this.row_selected >= 0">0 | 1</button>
-    <button type="button" class="btn btn-sm btn-primary" (click)="setResult(0.5,0.5)" *ngIf="this.row_selected >= 0">1/2 | 1/2</button>
-    <button type="button" class="btn btn-sm btn-primary" (click)="setResult(0,0)" *ngIf="this.row_selected >= 0">0 | 0</button>
-    <button type="button" class="btn btn-sm btn-primary" (click)="setResultWO(1,0)" *ngIf="this.row_selected >= 0">+ | -</button>
-    <button type="button" class="btn btn-sm btn-primary" (click)="setResultWO(0,1)" *ngIf="this.row_selected >= 0">- | +</button>
-    <button type="button" class="btn btn-sm btn-primary" (click)="setResultWO(0,0)" *ngIf="this.row_selected >= 0">- | -</button>
+
+<button type="button" class="btn btn-sm btn-primary btn-result" (click)="setEmptyResult()" *ngIf="this.row_selected >= 0">Vazio</button>
+<button type="button" class="btn btn-sm btn-primary btn-result" (click)="setResult(1,0)" *ngIf="this.row_selected >= 0">1 | 0</button>
+<button type="button" class="btn btn-sm btn-primary btn-result" (click)="setResult(0,1)" *ngIf="this.row_selected >= 0">0 | 1</button>
+<button type="button" class="btn btn-sm btn-primary btn-result" (click)="setResult(0.5,0.5)" *ngIf="this.row_selected >= 0">1/2 | 1/2</button>
+<button type="button" class="btn btn-sm btn-primary btn-result" (click)="setResult(0,0)" *ngIf="this.row_selected >= 0">0 | 0</button>
+<button type="button" class="btn btn-sm btn-primary btn-result" (click)="setResultWO(1,0)" *ngIf="this.row_selected >= 0">+ | -</button>
+<button type="button" class="btn btn-sm btn-primary btn-result" (click)="setResultWO(0,1)" *ngIf="this.row_selected >= 0">- | +</button>
+<button type="button" class="btn btn-sm btn-primary btn-result" (click)="setResultWO(0,0)" *ngIf="this.row_selected >= 0">- | -</button>
 
 <table class="table table-striped">
   <thead>
@@ -34,9 +36,9 @@
   <tbody class="text-center">
     <tr *ngFor="let pairing of pairings; let i = index" (click)="selectRow(i)" [ngClass]="i == row_selected ? 'row-selected' : ''">
       <td>{{pairing.number}}</td>
-      <td>{{pairing.player_a.name}} [{{pairing.player_a.temporary_tournament_info[((selected_round_number > 0) ? selected_round_number-1 : selected_round_number)].points}}]</td>
+      <td>{{pairing.player_a.name}} [{{getPoints(pairing.player_a,selected_round_number)}}]</td>
       <td>{{getPairingResult(pairing)}}</td>
-      <td>{{ ((pairing.is_bye) ? 'BYE' : pairing.player_b.name.concat(" [").concat(pairing.player_b.temporary_tournament_info[((selected_round_number > 0) ? selected_round_number-1 : selected_round_number)].points).concat("]")) }}</td>
+      <td>{{ ((pairing.is_bye) ? 'BYE' : pairing.player_b.name.concat(" [").concat(getPoints(pairing.player_b,selected_round_number)).concat("]")) }}</td>
     </tr>
   </tbody>
 

@@ -9,6 +9,7 @@ import { ElectronService } from '../../../../../../core/services';
 import { Tournament } from '../../../../../../_interfaces/tournament';
 import { TournamentType } from '../../../../../../_interfaces/_enums/_tournament_type';
 import { Subject } from 'rxjs';
+import { Tiebreak } from '../../../../../../_interfaces/_enums/_tiebreak';
 
 @Component({
   selector: 'app-dashboard-tournament',
@@ -97,12 +98,14 @@ export class DashboardTournamentComponent implements OnInit {
 
   ngOnInit() {
     if(this.tournament_uuid){
+      this.getTiebreaks();
       this.get();
     }
   }
 
   async get(){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.tournaments.get", this.tournament_uuid);
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.get", this.tournament_uuid);
+    console.log("dashboard-tournament get");
     if(retorno.ok){
       this.tournament = retorno.tournament;
 
@@ -115,7 +118,9 @@ export class DashboardTournamentComponent implements OnInit {
   }
 
   async getLastRound(){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.rounds.getLastRound", this.tournament_uuid);
+    console.log("dashboard-tournament getLastRound");
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.getLastRound", this.tournament_uuid);
+    console.log(retorno);
     if(retorno.ok){
       this.last_round_number = retorno.round.number;
       this.selected_round_number = retorno.round.number;
@@ -127,11 +132,12 @@ export class DashboardTournamentComponent implements OnInit {
 
 
   async save(){
+    console.log("dashboard-tournament save");
     let retorno;
     if(this.tournament_uuid){
-      retorno = await this.electronService.ipcRenderer.invoke("model.tournaments.update", this.tournament_uuid, this.tournament);
+      retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.update", this.tournament_uuid, this.tournament);
     }else{
-      retorno = await this.electronService.ipcRenderer.invoke("model.tournaments.create", this.event_uuid, this.tournament);
+      retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.create", this.event_uuid, this.tournament);
 
       if(retorno.ok){
         this.new_tournament_event_emitter.emit(retorno.data.uuid);
@@ -193,14 +199,21 @@ export class DashboardTournamentComponent implements OnInit {
   }
 
   async onNewRound(event:string){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.rounds.get",event);
-    if(retorno.ok == 1){
-      this.last_round_number = retorno.round.number;
+    if(event !== "0"){
+      let retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.get",event);
+      if(retorno.ok == 1){
+        this.last_round_number = retorno.round.number;
+        this.selected_round_number = this.last_round_number;
+
+        this.onResultChange();
+      }
+      console.log(retorno);
+    }else{
+      this.last_round_number = 0;
       this.selected_round_number = this.last_round_number;
 
       this.onResultChange();
     }
-    console.log(retorno);
   }
 
   async onRoundChange(){
@@ -241,13 +254,11 @@ export class DashboardTournamentComponent implements OnInit {
   }
   putToDownOrdering(i){
     if(this.tournament.ordering_sequence){
-      if(i > 0){
-        let item_to_put_in_up_position = this.tournament.ordering_sequence[i+1];
-        let item_to_put_in_down_position = this.tournament.ordering_sequence[i];
+      let item_to_put_in_up_position = this.tournament.ordering_sequence[i+1];
+      let item_to_put_in_down_position = this.tournament.ordering_sequence[i];
 
-        this.tournament.ordering_sequence[i] = item_to_put_in_up_position;
-        this.tournament.ordering_sequence[i+1] = item_to_put_in_down_position;
-      }
+      this.tournament.ordering_sequence[i] = item_to_put_in_up_position;
+      this.tournament.ordering_sequence[i+1] = item_to_put_in_down_position;
     }
   }
   removeOrdering(i){
@@ -273,9 +284,9 @@ export class DashboardTournamentComponent implements OnInit {
           message: "Aguardando Emparceiramento Inicial"
         }
       }else if(Number(this.tournament.rounds_number) === this.last_round_number){
-        let retorno_last_round = await this.electronService.ipcRenderer.invoke("model.rounds.getLastRound", this.tournament_uuid);
+        let retorno_last_round = await this.electronService.ipcRenderer.invoke("controller.rounds.getLastRound", this.tournament_uuid);
         if(retorno_last_round.ok === 1){
-          let retorno = await this.electronService.ipcRenderer.invoke("model.pairings.isAllPairingsWithResult", retorno_last_round.round.uuid);
+          let retorno = await this.electronService.ipcRenderer.invoke("controller.pairings.isAllPairingsWithResult", retorno_last_round.round.uuid);
           if(retorno.ok === 1){
             if(retorno.result){
               this.tournament_status = {
@@ -297,7 +308,8 @@ export class DashboardTournamentComponent implements OnInit {
           }
         }
       }else{
-        let  retorno = await this.electronService.ipcRenderer.invoke("model.rounds.canGenerateNewRound", this.tournament_uuid);
+        let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.canGenerateNewRound", this.tournament_uuid);
+        console.log(retorno);
         if(retorno.ok){
           if(retorno.result){
             this.tournament_status = {
@@ -321,4 +333,92 @@ export class DashboardTournamentComponent implements OnInit {
     }
   }
 
+
+
+  tiebreaks:Array<any> = [];
+  tiebreaks_by_id = {};
+  tiebreaks_not_selected:Array<any> = [];
+
+  getTiebreak(tiebreak_id){
+    if(this.tiebreaks_by_id[tiebreak_id])
+    return this.tiebreaks_by_id[tiebreak_id].name;
+
+    return "-";
+  }
+
+  async getTiebreaks(){
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.tiebreaks.get");
+    console.log(retorno);
+    this.tiebreaks = [];
+    this.tiebreaks_by_id = {};
+
+    if(retorno.ok){
+      let i = 0;
+      for(let tiebreak of retorno.tiebreaks){
+        this.tiebreaks[i++] = tiebreak;
+        this.tiebreaks_by_id[tiebreak.id] = tiebreak;
+      }
+
+      console.log(this.tiebreaks_by_id);
+
+      this.registerNotSelectedTiebreaks();
+    }
+  }
+
+
+  registerNotSelectedTiebreaks(){
+    if(!this.tournament.tiebreaks){
+      this.tournament.tiebreaks = [];
+    }
+
+    this.tiebreaks_not_selected = [];
+
+    let orderings = [];
+
+    for(let tiebreak of this.tiebreaks){
+      if(!this.tournament.tiebreaks.includes(tiebreak.id)){
+        this.tiebreaks_not_selected.push(tiebreak);
+      }
+    }
+  }
+
+  addTiebreak(tiebreak_id){
+    if(this.tournament.tiebreaks){
+      if(!this.tournament.tiebreaks.includes(tiebreak_id)){
+        this.tournament.tiebreaks.push(tiebreak_id);
+      }
+
+      this.registerNotSelectedTiebreaks();
+    }
+  }
+
+  putToUpTiebreak(i){
+    if(this.tournament.tiebreaks){
+      if(i > 0){
+        let item_to_put_in_up_position = this.tournament.tiebreaks[i];
+        let item_to_put_in_down_position = this.tournament.tiebreaks[i-1];
+
+        this.tournament.tiebreaks[i-1] = item_to_put_in_up_position;
+        this.tournament.tiebreaks[i] = item_to_put_in_down_position;
+      }
+    }
+  }
+  putToDownTiebreak(i){
+    if(this.tournament.tiebreaks){
+      let item_to_put_in_up_position = this.tournament.tiebreaks[i+1];
+      let item_to_put_in_down_position = this.tournament.tiebreaks[i];
+
+      this.tournament.tiebreaks[i] = item_to_put_in_up_position;
+      this.tournament.tiebreaks[i+1] = item_to_put_in_down_position;
+    }
+  }
+  removeTiebreak(i){
+    if(this.tournament.tiebreaks){
+      if(i < this.tournament.tiebreaks.length && i >= 0){
+        this.tournament.tiebreaks.splice(i,1);
+
+        this.registerNotSelectedTiebreaks();
+      }
+    }
+  }
 }

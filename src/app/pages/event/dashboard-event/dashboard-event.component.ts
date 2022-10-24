@@ -31,7 +31,7 @@ export class DashboardEventComponent implements OnInit, AfterViewInit {
   }
 
   async getEvent(){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.events.get",this.event_uuid);
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.events.get",this.event_uuid);
     if(retorno.ok == 1){
       this.event = retorno.event;
 
@@ -68,7 +68,7 @@ export class DashboardEventComponent implements OnInit, AfterViewInit {
 	}
 
   async save(){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.events.update", this.edit_event);
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.events.update", this.edit_event);
     if(retorno.ok){
       this.getEvent();
       this.modalService.dismissAll();

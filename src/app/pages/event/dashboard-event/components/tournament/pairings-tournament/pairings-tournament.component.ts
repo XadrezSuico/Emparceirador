@@ -5,6 +5,8 @@ import { Observable, Subscription, throwIfEmpty } from 'rxjs';
 import { ElectronService } from '../../../../../../core/services';
 import { Pairing } from '../../../../../../_interfaces/pairing';
 
+import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-pairings-tournament',
   templateUrl: './pairings-tournament.component.html',
@@ -35,6 +37,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
 
   selected_round_status = {
     can_pairing: false,
+    can_unpair: false,
     message: "-"
   }
 
@@ -57,13 +60,71 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   }
 
   async generateRound(){
-    let  retorno = await this.electronService.ipcRenderer.invoke("model.rounds.generateRound", this.tournament_uuid);
+    let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.generateRound", this.tournament_uuid);
     if(retorno.ok){
       this.new_round_emitter.emit(retorno.data.uuid);
 
       this.last_round_number = retorno.data.number;
 
       this.getPairings();
+
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Rodada gerada com sucesso!',
+        icon: 'success',
+        confirmButtonText: 'Fechar',
+        toast: true,
+        position: 'top-right',
+        timer: 3000,
+        timerProgressBar: true,
+      });
+    }else{
+      Swal.fire({
+          title: 'Erro!',
+          text: retorno.message,
+          icon: 'error',
+          confirmButtonText: 'Fechar'
+      });
+    }
+  }
+
+  async unPairRound(){
+    let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.unPairRound", this.tournament_uuid, this.last_round_number);
+    if(retorno.ok === 1){
+      let retorno_round = await this.electronService.ipcRenderer.invoke("controller.rounds.getLastRound", this.tournament_uuid);
+      if(retorno_round.ok === 1){
+        this.new_round_emitter.emit(retorno_round.round.uuid);
+
+        this.last_round_number = retorno_round.round.number;
+        this.selected_round_number = this.last_round_number;
+
+        this.getPairings();
+      }else{
+        this.new_round_emitter.emit(String(0));
+
+        this.last_round_number = 0;
+        this.selected_round_number = this.last_round_number;
+
+        this.getPairings();
+      }
+
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Rodada desemparceirada com sucesso!',
+        icon: 'success',
+        confirmButtonText: 'Fechar',
+        toast: true,
+        position: 'top-right',
+        timer: 3000,
+        timerProgressBar: true,
+      });
+    }else{
+      Swal.fire({
+          title: 'Erro!',
+          text: retorno.message,
+          icon: 'error',
+          confirmButtonText: 'Fechar'
+      });
     }
   }
 
@@ -78,7 +139,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   // }
 
   async canGenerateNewRound(){
-      return this.selected_round_status.can_pairing;
+    return this.selected_round_status.can_pairing;
   }
 
   async statusSelectedRound(){
@@ -86,30 +147,36 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
       if(Number(this.last_round_number) === 0){
         this.selected_round_status = {
           can_pairing: true,
+          can_unpair: true,
           message: "Torneio apto para primeiro emparceiramento"
         }
       }else if(Number(this.tournament.rounds_number) === this.last_round_number){
         this.selected_round_status = {
           can_pairing: false,
+          can_unpair: true,
           message: "Última rodada - Não é mais possível efetuar emparceiramentos."
         }
       }else{
-        let  retorno = await this.electronService.ipcRenderer.invoke("model.rounds.canGenerateNewRound", this.tournament_uuid);
+        let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.canGenerateNewRound", this.tournament_uuid);
+        console.log(retorno);
         if(retorno.ok){
           if(retorno.result){
             this.selected_round_status = {
               can_pairing: true,
+              can_unpair: true,
               message: "Apto para emparceiramento"
             }
           }else{
             this.selected_round_status = {
               can_pairing: false,
+              can_unpair: true,
               message: retorno.message
             }
           }
         }else{
           this.selected_round_status = {
             can_pairing: false,
+            can_unpair: true,
             message: "-"
           }
         }
@@ -117,6 +184,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
     }else{
       this.selected_round_status = {
         can_pairing: false,
+        can_unpair: false,
         message: "A rodada não é a mais atual - Altere para a rodada mais atual para que seja possível emparceirar."
       }
     }
@@ -127,38 +195,33 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
     console.log("Round Selected: ".concat(String(this.selected_round_number)));
 
     if(this.selected_round_number > 0){
-      let retorno = await this.electronService.ipcRenderer.invoke("model.rounds.getByNumber", this.tournament_uuid, this.selected_round_number);
+      let retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.getByNumber", this.tournament_uuid, this.selected_round_number);
+      console.log(retorno)
       if(retorno.ok === 1){
         let round = retorno.round;
-        let result_pairings = await this.electronService.ipcRenderer.invoke("model.pairings.listByRound", round.uuid);
+        let result_pairings = await this.electronService.ipcRenderer.invoke("controller.pairings.listByRound", round.uuid);
+        console.log(result_pairings)
         if(result_pairings.ok === 1){
           this.pairings = result_pairings.pairings;
 
-          // this.updatePlayersName();
+        }else{
+          Swal.fire({
+              title: 'Erro!',
+              text: result_pairings.message,
+              icon: 'error',
+              confirmButtonText: 'Fechar'
+          });
         }
+      }else{
+        Swal.fire({
+            title: 'Erro!',
+            text: retorno.message,
+            icon: 'error',
+            confirmButtonText: 'Fechar'
+        });
       }
     }else{
       this.pairings = [];
-    }
-  }
-
-  async updatePlayersName(){
-    let i = 0;
-    for(let pairing of this.pairings){
-      console.log(pairing);
-      if(pairing.player_a_uuid){
-        let return_player_a = await this.electronService.ipcRenderer.invoke("model.players.get", pairing.player_a_uuid);
-        if(return_player_a.ok === 1){
-          this.pairings[i].player_a_name = return_player_a.player.name;
-        }
-      }
-      if(pairing.player_b_uuid){
-        let return_player_b = await this.electronService.ipcRenderer.invoke("model.players.get", pairing.player_b_uuid);
-        if(return_player_b.ok === 1){
-          this.pairings[i].player_b_name = return_player_b.player.name;
-        }
-      }
-      i++;
     }
   }
 
@@ -244,11 +307,33 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   }
 
   async updateResult(pairing){
-    let return_update_result = await this.electronService.ipcRenderer.invoke("model.pairings.update", pairing);
+    let return_update_result = await this.electronService.ipcRenderer.invoke("controller.pairings.update", pairing);
     if(return_update_result.ok === 1){
       this.statusSelectedRound();
       return {ok:1,error:0}
+    }else{
+      Swal.fire({
+          title: 'Erro!',
+          text: return_update_result.message,
+          icon: 'error',
+          confirmButtonText: 'Fechar'
+      });
     }
     return return_update_result;
+  }
+
+
+  getPoints(player,round_number){
+    if(player){
+      for(let standing of player.standings){
+        if(standing){
+          if(standing.round_number === (round_number-1)){
+            return standing.points;
+          }
+        }
+      }
+      return 0;
+    }
+    return -1;
   }
 }

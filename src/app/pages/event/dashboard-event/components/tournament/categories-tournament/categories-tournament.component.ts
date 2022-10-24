@@ -31,7 +31,7 @@ export class CategoriesTournamentComponent implements OnInit {
     }
   }
   async list(){
-    let  retorno = await this.electronService.ipcRenderer.invoke("model.categories.listFromTournament", this.tournament_uuid);
+    let  retorno = await this.electronService.ipcRenderer.invoke("controller.categories.listFromTournament", this.tournament_uuid);
     if(retorno.ok){
       this.categories = retorno.categories;
     }
@@ -39,7 +39,7 @@ export class CategoriesTournamentComponent implements OnInit {
 
 
   async get(content,uuid){
-    let  retorno = await this.electronService.ipcRenderer.invoke("model.categories.get", uuid);
+    let  retorno = await this.electronService.ipcRenderer.invoke("controller.categories.get", uuid);
     if(retorno.ok){
       this.category = retorno.category;
 
@@ -69,9 +69,9 @@ export class CategoriesTournamentComponent implements OnInit {
   async save(){
     let retorno;
     if(this.category.uuid){
-      retorno = await this.electronService.ipcRenderer.invoke("model.categories.update", this.category);
+      retorno = await this.electronService.ipcRenderer.invoke("controller.categories.update", this.category);
     }else{
-      retorno = await this.electronService.ipcRenderer.invoke("model.categories.create", this.tournament_uuid, this.category);
+      retorno = await this.electronService.ipcRenderer.invoke("controller.categories.create", this.tournament_uuid, this.category);
     }
     if(retorno.ok){
       this.list();
@@ -81,7 +81,7 @@ export class CategoriesTournamentComponent implements OnInit {
 
 
   async remove(uuid){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.categories.remove", uuid);
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.categories.remove", uuid);
     if(retorno.ok){
       this.list();
     }

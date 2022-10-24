@@ -4,12 +4,12 @@ const Events = require('../models/event.model');
 const dateHelper = require("../helpers/date.helper");
 
 module.exports.setEvents = (ipcMain) => {
-  ipcMain.handle('model.events.listAll', listAll)
-  ipcMain.handle('model.events.create.example', createExample)
-  ipcMain.handle('model.events.create', create)
-  ipcMain.handle('model.events.get', get)
-  ipcMain.handle('model.events.update', update)
-  ipcMain.handle('model.events.remove', remove)
+  ipcMain.handle('controller.events.listAll', listAll)
+  ipcMain.handle('controller.events.create.example', createExample)
+  ipcMain.handle('controller.events.create', create)
+  ipcMain.handle('controller.events.get', get)
+  ipcMain.handle('controller.events.update', update)
+  ipcMain.handle('controller.events.remove', remove)
 }
 
 async function create(event, xadrezsuico){
@@ -32,7 +32,7 @@ async function create(event, xadrezsuico){
 async function createExample(){
   try {
         const resultado = await database.sync();
-        console.log(resultado);
+        // console.log(resultado);
 
         const resultadoCreate = await Events.create({
             uuid: '6bcf27ea-7cf9-493b-b71a-f544d98607d0',
@@ -42,7 +42,7 @@ async function createExample(){
             time_control: 'RPD',
             place: 'Local',
         })
-        console.log(resultadoCreate);
+        // console.log(resultadoCreate);
     } catch (error) {
         console.log(error);
     }
@@ -105,7 +105,7 @@ async function update(e,event){
           uuid:event.uuid
         }
       })
-      console.log(resultado);
+      // console.log(resultado);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);

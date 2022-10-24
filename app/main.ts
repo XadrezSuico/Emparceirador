@@ -60,6 +60,8 @@ const player_controller = require("./controllers/player.controller")
 const category_controller = require("./controllers/category.controller")
 const round_controller = require("./controllers/round.controller")
 const pairing_controller = require("./controllers/pairing.controller")
+const standing_controller = require("./controllers/standing.controller")
+const tiebreak_controller = require("./controllers/tiebreak.controller")
 
 try {
   // This method will be called when Electron has finished
@@ -74,6 +76,8 @@ try {
     player_controller.setEvents(ipcMain)
     round_controller.setEvents(ipcMain)
     pairing_controller.setEvents(ipcMain)
+    standing_controller.setEvents(ipcMain)
+    tiebreak_controller.setEvents(ipcMain)
 
 
 

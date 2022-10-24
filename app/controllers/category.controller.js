@@ -6,12 +6,12 @@ const dateHelper = require("../helpers/date.helper");
 module.exports.setEvents = (ipcMain) => {
   database.sync();
 
-  ipcMain.handle('model.categories.listAll', listAll)
-  ipcMain.handle('model.categories.listFromTournament', listFromTournament)
-  ipcMain.handle('model.categories.create', create)
-  ipcMain.handle('model.categories.get', get)
-  ipcMain.handle('model.categories.update', update)
-  ipcMain.handle('model.categories.remove', remove)
+  ipcMain.handle('controller.categories.listAll', listAll)
+  ipcMain.handle('controller.categories.listFromTournament', listFromTournament)
+  ipcMain.handle('controller.categories.create', create)
+  ipcMain.handle('controller.categories.get', get)
+  ipcMain.handle('controller.categories.update', update)
+  ipcMain.handle('controller.categories.remove', remove)
 }
 
 module.exports.create = create;
@@ -29,7 +29,7 @@ async function create(event, tournament_uuid, category){
 
         tournamentUuid: tournament_uuid,
       })
-      console.log(resultadoCreate);
+      // console.log(resultadoCreate);
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);
@@ -113,7 +113,7 @@ async function update(e,category){
           uuid:category.uuid
         }
       })
-      console.log(resultado);
+      // console.log(resultado);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);

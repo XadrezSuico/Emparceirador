@@ -7,4 +7,5 @@ Rounds.belongsTo(Tournaments)
 
 Rounds.hasMany(Pairings)
 Rounds.hasMany(Standings)
+
 module.exports = Rounds;

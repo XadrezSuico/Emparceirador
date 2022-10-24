@@ -12,17 +12,19 @@ const Tournaments = require('../models/tournament.model');
 const Rounds = require('../models/round.model');
 const Players = require('../models/player.model');
 const { Op } = require('sequelize');
+const Standings = require('../models/standing.model');
 
 module.exports.setEvents = (ipcMain) => {
   database.sync();
 
-  ipcMain.handle('model.pairings.listAll', listAll)
-  ipcMain.handle('model.pairings.listByRound', listFromRound)
-  ipcMain.handle('model.pairings.create', create)
-  ipcMain.handle('model.pairings.get', get)
-  ipcMain.handle('model.pairings.update', update)
-  ipcMain.handle('model.pairings.remove', remove)
-  ipcMain.handle('model.pairings.isAllPairingsWithResult', isAllPairingsWithResult)
+  ipcMain.handle('controller.pairings.listAll', listAll)
+  ipcMain.handle('controller.pairings.listByRound', listFromRound)
+  ipcMain.handle('controller.pairings.create', create)
+  ipcMain.handle('controller.pairings.get', get)
+  ipcMain.handle('controller.pairings.update', update)
+  ipcMain.handle('controller.pairings.remove', remove)
+  ipcMain.handle('controller.pairings.removeByRound', removeByRound)
+  ipcMain.handle('controller.pairings.isAllPairingsWithResult', isAllPairingsWithResult)
 }
 
 module.exports.listAll = listAll;
@@ -32,6 +34,7 @@ module.exports.create = create;
 module.exports.get = get;
 module.exports.update = update;
 module.exports.remove = remove;
+module.exports.removeByRound = removeByRound;
 module.exports.isAllPairingsWithResult = isAllPairingsWithResult;
 module.exports.listPlayerPairings = listPlayerPairings;
 
@@ -59,7 +62,7 @@ async function create(event, round_uuid, pairing){
           roundUuid: round_uuid,
         })
       }
-      console.log(resultadoCreate);
+      // console.log(resultadoCreate);
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);
@@ -98,9 +101,9 @@ async function listFromRound(event,round_uuid) {
     let round_request = await RoundsController.get(null,round_uuid);
     if(round_request.ok === 1){
 
-      let temporary_info_request = await PlayersController.generateTemporaryTournamentInfos(null,round_request.round.tournament_uuid);
+      // let round_update_standings_request = await RoundsController.updateStandings(null,round_request.round.uuid);
 
-      if(temporary_info_request.ok === 1){
+      // if(round_update_standings_request.ok === 1){
         let pairings = await Pairings.findAll({
           where: {
             roundUuid: round_uuid
@@ -112,10 +115,28 @@ async function listFromRound(event,round_uuid) {
             {
               model: Players,
               as: 'player_a',
+              include: [
+                {
+                  model: Standings,
+                  as: 'standings',
+                  order: [
+                    ["round_number", "ASC"]
+                  ],
+                }
+              ]
             },
             {
               model: Players,
               as: 'player_b',
+              include: [
+                {
+                  model: Standings,
+                  as: 'standings',
+                  order:[
+                    ["round_number","ASC"]
+                  ],
+                }
+              ]
             },
           ]
         });
@@ -124,9 +145,12 @@ async function listFromRound(event,round_uuid) {
         let pairings_return = [];
         let i = 0;
 
+        console.log("Pairings by Round")
+        console.log(pairings)
+
         for(let pairing of pairings){
 
-          console.log(pairing);
+          // console.log(pairing);
 
           let pairing_return = {
             uuid: pairing.uuid,
@@ -147,10 +171,11 @@ async function listFromRound(event,round_uuid) {
         }
         return {ok:1,error:0,pairings:pairings_return};
       }
-    }
+    // }
   } catch (error) {
       console.log(error);
   }
+  return { ok: 0, error: 1, message:"Erro desconhecido" };
 }
 
 
@@ -169,6 +194,7 @@ async function get(e,uuid) {
         player_b_wo: pairing.player_b_wo,
         have_result: pairing.have_result,
         is_bye: pairing.is_bye,
+        round_uuid: pairing.roundUuid,
     };
 
     return {ok:1,error:0,pairing:pairing_return};
@@ -194,7 +220,12 @@ async function update(e,pairing){
           uuid:pairing.uuid
         }
       })
-      console.log(resultado);
+
+      let pairing_request = await get(null,pairing.uuid);
+      if (pairing_request.ok === 1) {
+        await RoundsController.updateStandings(null,pairing_request.pairing.round_uuid);
+      }
+      // console.log(resultado);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);
@@ -222,6 +253,34 @@ async function remove(e,uuid) {
   }
 }
 
+async function removeByRound(e, round_uuid) {
+  try {
+    Pairings.destroy({
+      where: {
+        roundUuid: round_uuid
+      }
+    });
+    return { ok: 1, error: 0 };
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+async function removeByRound(e, round_uuid) {
+  try {
+    Pairings.destroy({
+      where: {
+        roundUuid: round_uuid
+      }
+    });
+    return { ok: 1, error: 0 };
+
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_number = null) {
   try {

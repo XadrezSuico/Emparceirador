@@ -43,7 +43,7 @@ export class NewEventComponent implements OnInit {
   }
 
   async save(){
-    let retorno = await this.electronService.ipcRenderer.invoke("model.events.create", this.xadrezsuico);
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.events.create", this.xadrezsuico);
     console.log(retorno);
 
     if(retorno.ok == 1){

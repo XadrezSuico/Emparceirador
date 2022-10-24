@@ -15,7 +15,7 @@ Players.hasMany(Pairings, {
   foreignKey: "player_b_uuid",
   as: "player_b"
 })
-Players.belongsTo(Standings)
+Players.hasMany(Standings)
 
 
 module.exports = Players;

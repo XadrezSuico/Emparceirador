@@ -27,6 +27,10 @@ const Tournaments = database.define('tournaments', {
   ordering_sequence: {
     type: Sequelize.JSON,
     allowNull: true
+  },
+  tiebreaks: {
+    type: Sequelize.JSON,
+    allowNull: true
   }
 })
 

@@ -115,7 +115,7 @@
                     <tbody>
                       <tr *ngFor="let ordering of list_orderings_not_selected; let i = index">
                         <td>
-                          {{i+1}} - {{getOrderingName(ordering.value)}} -
+                          {{getOrderingName(ordering.value)}}
                         </td>
                         <td>
                           <button type="button" class="btn btn-secondary btn-sm" (click)="addOrdering(ordering.value)">
@@ -148,6 +148,58 @@
                             <fa-icon [icon]="down_icon"></fa-icon>
                           </button>
                           <button type="button" class="btn btn-danger btn-sm" (click)="removeOrdering(i)">
+                            <fa-icon [icon]="x_icon"></fa-icon>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div><div class="row">
+                <div class="col-md-6">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Critérios de Desempate</th>
+                        <th>Opções</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let tiebreak of tiebreaks_not_selected; let i = index">
+                        <td>
+                          {{tiebreak.name}}
+                        </td>
+                        <td>
+                          <button type="button" class="btn btn-secondary btn-sm" (click)="addTiebreak(tiebreak.id)">
+                            <fa-icon [icon]="add_icon"></fa-icon>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="col-md-6">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Critérios de Desempate</th>
+                        <th>Opções</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let tiebreak_id of tournament.tiebreaks; let i = index">
+                        <td>
+                          {{i+1}} - {{getTiebreak(tiebreak_id)}}
+                        </td>
+                        <td>
+                          <button type="button" class="btn btn-secondary btn-sm" (click)="putToUpTiebreak(i)" *ngIf="i != 0">
+                            <fa-icon [icon]="up_icon"></fa-icon>
+                          </button>
+                          <button type="button" class="btn btn-secondary btn-sm" (click)="putToDownTiebreak(i)"
+                            *ngIf="(i + 1) < tournament.tiebreaks.length">
+                            <fa-icon [icon]="down_icon"></fa-icon>
+                          </button>
+                          <button type="button" class="btn btn-danger btn-sm" (click)="removeTiebreak(i)">
                             <fa-icon [icon]="x_icon"></fa-icon>
                           </button>
                         </td>

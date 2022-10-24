@@ -97,9 +97,13 @@ export class DashboardTournamentComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.init();
+  }
+
+  async init(){
     if(this.tournament_uuid){
+      await this.get();
       this.getTiebreaks();
-      this.get();
     }
   }
 
@@ -313,7 +317,7 @@ export class DashboardTournamentComponent implements OnInit {
         if(retorno.ok){
           if(retorno.result){
             this.tournament_status = {
-              message: "Apta para emparceiramento"
+              message: "Apto para emparceiramento"
             }
           }else{
             this.tournament_status = {
@@ -336,6 +340,7 @@ export class DashboardTournamentComponent implements OnInit {
 
 
   tiebreaks:Array<any> = [];
+  tiebreak_types:Array<any> = [];
   tiebreaks_by_id = {};
   tiebreaks_not_selected:Array<any> = [];
 
@@ -354,7 +359,19 @@ export class DashboardTournamentComponent implements OnInit {
 
     if(retorno.ok){
       let i = 0;
+      let j = 0;
       for(let tiebreak of retorno.tiebreaks){
+        switch(this.tournament.tournament_type){
+          case TournamentType.SWISS:
+            if(tiebreak.is_swiss){
+              this.tiebreak_types[j++] = tiebreak;
+            }
+            break;
+          case TournamentType.SCHURING:
+            if(tiebreak.is_schuring){
+              this.tiebreak_types[j++] = tiebreak;
+            }
+        }
         this.tiebreaks[i++] = tiebreak;
         this.tiebreaks_by_id[tiebreak.id] = tiebreak;
       }
@@ -375,7 +392,7 @@ export class DashboardTournamentComponent implements OnInit {
 
     let orderings = [];
 
-    for(let tiebreak of this.tiebreaks){
+    for(let tiebreak of this.tiebreak_types){
       if(!this.tournament.tiebreaks.includes(tiebreak.id)){
         this.tiebreaks_not_selected.push(tiebreak);
       }

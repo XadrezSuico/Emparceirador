@@ -20,6 +20,9 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   @Output()
   new_round_emitter = new EventEmitter<string>();
 
+  @Output()
+  result_change_emitter = new EventEmitter<void>();
+
   constructor(
     private electronService: ElectronService,
     private modalService: NgbModal,
@@ -86,6 +89,24 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
           confirmButtonText: 'Fechar'
       });
     }
+  }
+
+  showUnpairRoundModal(){
+    Swal.fire({
+      title: 'Confirmação',
+      html: "Deseja realmente desemparceirar esta rodada?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sim',
+      cancelButtonText: 'Não'
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        this.unPairRound();
+      }
+    })
   }
 
   async unPairRound(){
@@ -310,6 +331,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
     let return_update_result = await this.electronService.ipcRenderer.invoke("controller.pairings.update", pairing);
     if(return_update_result.ok === 1){
       this.statusSelectedRound();
+      this.result_change_emitter.emit();
       return {ok:1,error:0}
     }else{
       Swal.fire({

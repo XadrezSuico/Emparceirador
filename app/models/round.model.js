@@ -1,20 +1,10 @@
-const Sequelize = require('sequelize');
-const database = require('../db/db');
+const Pairings = require('./pairing.basic.model');
+const Rounds = require('./round.basic.model');
+const Standings = require('./standing.basic.model');
+const Tournaments = require('./tournament.basic.model');
 
-const Rounds = database.define('rounds', {
-  id: {
-    type: Sequelize.INTEGER,
-    allowNull: true
-  },
-  uuid: {
-    type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
-    primaryKey: true,
-  },
-  number: {
-    type: Sequelize.INTEGER,
-    allowNull: false
-  },
-})
+Rounds.belongsTo(Tournaments)
 
+Rounds.hasMany(Pairings)
+Rounds.hasMany(Standings)
 module.exports = Rounds;

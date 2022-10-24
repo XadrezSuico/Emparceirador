@@ -1,85 +1,21 @@
-const Sequelize = require('sequelize');
-const database = require('../db/db');
-const moment = require('moment');
-const Categories = require('./category.model');
+const Players = require('./player.basic.model');
+const Categories = require('./category.basic.model');
+const Tournaments = require('./tournament.basic.model');
+const Pairings = require('./pairing.basic.model');
+const Standings = require('./standing.basic.model');
 
-const Players = database.define('players', {
-  id: {
-    type: Sequelize.INTEGER,
-    allowNull: true
-  },
-  uuid: {
-    type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
-    primaryKey: true,
-  },
-  name: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  start_number: {
-    type: Sequelize.INTEGER,
-    allowNull: true
-  },
-  borndate: {
-    type: Sequelize.DATE,
-    allowNull: true,
-    get: function() {
-      return moment.utc(this.getDataValue('borndate')).format('YYYY-MM-DD');
-    }
-  },
-  city: {
-    type: Sequelize.JSON,
-    allowNull: true
-  },
-  club: {
-    type: Sequelize.JSON,
-    allowNull: true
-  },
-
-
-  int_id: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  int_rating: {
-    type: Sequelize.INTEGER,
-    allowNull: true
-  },
-
-  xz_id: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  xz_rating: {
-    type: Sequelize.INTEGER,
-    allowNull: true
-  },
-
-  nat_id: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  nat_rating: {
-    type: Sequelize.INTEGER,
-    allowNull: true
-  },
-
-  fide_id: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  fide_rating: {
-    type: Sequelize.INTEGER,
-    allowNull: true
-  },
-
-  temporary_tournament_info: {
-    type: Sequelize.JSON,
-    allowNull: true
-  },
-})
-
+Players.belongsTo(Tournaments)
 Players.belongsTo(Categories)
+
+Players.hasMany(Pairings, {
+  foreignKey: "player_a_uuid",
+  as: "player_a"
+})
+Players.hasMany(Pairings, {
+  foreignKey: "player_b_uuid",
+  as: "player_b"
+})
+Players.belongsTo(Standings)
+
 
 module.exports = Players;

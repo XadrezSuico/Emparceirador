@@ -71,6 +71,10 @@
     <ng-container ngbNavItem>
       <a ngbNavLink><fa-icon [icon]="results_icon"></fa-icon> Resultados</a>
       <ng-template ngbNavContent>
+        <app-results-tournament
+        [tournament]="tournament"
+        [selected_round_number]="selected_round_number"
+        ></app-results-tournament>
       </ng-template>
     </ng-container>
 
@@ -94,7 +98,7 @@
               <div class="form-group">
                 <label for="tournament_type">Tipo de Torneio:</label>
                 <select name="tournament_type" id="tournament_type" class="form-select"
-                  [(ngModel)]="tournament.tournament_type">
+                  [(ngModel)]="tournament.tournament_type" (disabled)="last_round_number > 0">
                   <option value="SWISS">Sistema Suíço</option>
                   <option value="SCHURING">Sistema Round-Robin/Schüring/Todos-contra-todos</option>
                 </select>

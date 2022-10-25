@@ -6,6 +6,7 @@ const PairingsController = require('./pairing.controller');
 const dateHelper = require("../helpers/date.helper");
 
 const TournamentDTO = require("../dto/tournament.dto");
+const Categories = require('../models/category.model');
 
 module.exports.setEvents = (ipcMain) => {
   database.sync();
@@ -73,23 +74,14 @@ async function listFromEvent(event,event_uuid) {
     let tournaments = await Tournaments.findAll({
       where: {
         eventUuid: event_uuid
+      },
+      include: {
+        model: Categories,
+        as: "categories"
       }
     });
-    let tournaments_return = [];
-    let i = 0;
-    for(let tournament of tournaments){
-      let tournament_return = {
-        uuid: tournament.uuid,
-        name: tournament.name,
-        tournament_type: tournament.tournament_type,
-        rounds_number: tournament.rounds_number,
-        ordering_sequence: tournament.ordering_sequence,
-        tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
-      };
-
-      tournaments_return[i++] = tournament_return;
-    }
-    return {ok:1,error:0,tournaments:tournaments_return};
+    console.log(tournaments);
+    return { ok: 1, error: 0, tournaments: await TournamentDTO.convertToExportList(tournaments)};
   } catch (error) {
       console.log(error);
   }
@@ -98,7 +90,15 @@ async function listFromEvent(event,event_uuid) {
 
 async function get(e,uuid) {
   try {
-    let tournament = await Tournaments.findByPk(uuid);
+    let tournament = await Tournaments.findOne({
+      where:{
+        uuid:uuid
+      },
+      include:{
+        model:Categories,
+        as:"categories"
+      }
+    });
 
     if(tournament){
       return { ok: 1, error: 0, tournament: await TournamentDTO.convertToExport(tournament) };

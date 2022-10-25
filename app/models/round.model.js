@@ -1,3 +1,4 @@
+const Categories = require('./category.basic.model');
 const Pairings = require('./pairing.basic.model');
 const Rounds = require('./round.basic.model');
 const Standings = require('./standing.basic.model');

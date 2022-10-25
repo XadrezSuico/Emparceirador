@@ -82,7 +82,9 @@ export class DashboardTournamentComponent implements OnInit {
     uuid:'',
     name:'',
     tournament_type: TournamentType.SWISS,
-    ordering_sequence: []
+    ordering_sequence: [],
+    tiebreaks: [],
+    categories: []
   };
 
   last_round_number:number = 0;

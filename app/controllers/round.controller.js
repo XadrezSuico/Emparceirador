@@ -12,6 +12,7 @@ const pairingHelper = require("../helpers/pairing.helper");
 const RoundDTO = require("../dto/round.dto");
 const { last } = require('rxjs');
 const Tournaments = require('../models/tournament.model');
+const Categories = require('../models/category.basic.model');
 
 module.exports.setEvents = (ipcMain) => {
   database.sync();
@@ -107,8 +108,14 @@ async function get(e,uuid) {
       include:[
         {
           model: Tournaments,
-          as: 'tournament'
-        }
+          as: 'tournament',
+          include:[
+            {
+              model: Categories,
+              as: 'categories'
+            }
+          ]
+        },
       ]
     });
 
@@ -550,6 +557,7 @@ async function updateStandings(e,round_uuid){
           await generateStandingTiebreaks(null, tournament, round);
           console.log("Part3")
           await orderPlayersTournament(null, tournament, round);
+          await orderPlayersCategories(null, tournament, round);
         }
       }
 
@@ -640,17 +648,28 @@ async function orderPlayersTournament(e, tournament, round) {
       StandingsController.update(null,standing);
     }
   }
-}
 
-async function orderPlayersCategory(e, tournament, category, round) {
-  let standings_request = await StandingsController.listFromCategory(null, tournament.uuid, category.uuid, round.uuid);
-  if (standings_request.ok === 1) {
-    let standings = standings_request.standings;
-    standings.sort(sortFunction)
-    let place = 1;
-    for (let standing of standings) {
-      standing.place = place++;
-      StandingsController.update(null,standing);
+}
+async function orderPlayersCategories(e, tournament, round) {
+  console.log("orderPlayersCategories");
+  // console.log("tournament: ".concat(tournament.uuid));
+  // console.log("round: ".concat(round.uuid));
+  for (let category of tournament.categories){
+    let standings_request = await StandingsController.listFromCategory(null, tournament.uuid, category.uuid, round.uuid);
+    if (standings_request.ok === 1) {
+      let standings = standings_request.standings;
+      // console.log(standings);
+      console.log("standings_request");
+      standings.sort(sortFunction);
+      // console.log(standings);
+      let place = 1;
+      for (let standing of standings) {
+        console.log("category_standing");
+        standing.category_place = place++;
+        // console.log("Place: ".concat(String(place-1)));
+        // console.log(standing);
+        StandingsController.update(null, standing);
+      }
     }
   }
 }

@@ -1,3 +1,4 @@
+import { ResultsTournamentComponent } from './../pages/event/dashboard-event/components/tournament/results-tournament/results-tournament.component';
 import { PairingsTournamentComponent } from './../pages/event/dashboard-event/components/tournament/pairings-tournament/pairings-tournament.component';
 import { CategoriesTournamentComponent } from './../pages/event/dashboard-event/components/tournament/categories-tournament/categories-tournament.component';
 import { PlayersTournamentComponent } from './../pages/event/dashboard-event/components/tournament/players-tournament/players-tournament.component';
@@ -25,7 +26,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     DashboardTournamentComponent,
     PlayersTournamentComponent,
     CategoriesTournamentComponent,
-    PairingsTournamentComponent
+    PairingsTournamentComponent,
+    ResultsTournamentComponent
   ],
   imports: [CommonModule, SharedModule, DetailRoutingModule,FontAwesomeModule,NgxMaskModule.forChild(),NgbModule]
 })

@@ -10,6 +10,7 @@ const StandingsController = require("../controllers/standing.controller")
 module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.tiebreaks.get', get)
   ipcMain.handle('controller.tiebreaks.getSwiss', getSwiss)
+  ipcMain.handle('controller.tiebreaks.getFromList', getFromList)
 };
 
 module.exports.generateTiebreaks = generateTiebreaks;
@@ -32,6 +33,19 @@ function getSwiss() {
   }
 
   return { ok: 1, error: 0, tiebreaks: swiss_tiebreaks }
+}
+
+async function getFromList(e,tiebreaks) {
+  let return_tiebreaks = [];
+
+  for (let tiebreak of tiebreaks) {
+    for (let tiebreak_item of tiebreakHelper.tiebreaks()){
+      if(tiebreak_item.id === tiebreak){
+        return_tiebreaks[return_tiebreaks.length] = tiebreak_item;
+      }
+    }
+  }
+  return { ok: 1, error: 0, tiebreaks: return_tiebreaks }
 }
 
 

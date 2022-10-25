@@ -1,4 +1,5 @@
 const TournamentDTO = require('./tournament.dto');
+const CategoryDTO = require('./category.dto');
 module.exports.convertToExport = async (round) => {
   return {
     uuid: round.uuid,

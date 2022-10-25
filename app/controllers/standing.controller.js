@@ -10,6 +10,8 @@ const Rounds = require('../models/round.model');
 const Tournaments = require('../models/tournament.model');
 const Categories = require('../models/category.model');
 
+const RoundsController = require("./round.controller");
+
 module.exports.setEvents = (ipcMain) => {
   database.sync();
 
@@ -17,7 +19,9 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.standings.listFromPlayer', listFromPlayer)
   ipcMain.handle('controller.standings.listFromTournament', listFromTournament)
   ipcMain.handle('controller.standings.listFromRound', listFromRound)
+  ipcMain.handle('controller.standings.listFromRoundNumber', listFromRoundNumber)
   ipcMain.handle('controller.standings.listFromCategory', listFromCategory)
+  ipcMain.handle('controller.standings.listFromCategoryAndRoundNumber', listFromCategoryAndRoundNumber)
   ipcMain.handle('controller.standings.get', get)
   ipcMain.handle('controller.standings.removeByRound', removeByRound)
 }
@@ -27,7 +31,9 @@ module.exports.listAll = listAll;
 module.exports.listFromPlayer = listFromPlayer;
 module.exports.listFromTournament = listFromTournament;
 module.exports.listFromRound = listFromRound;
+module.exports.listFromRoundNumber = listFromRoundNumber;
 module.exports.listFromCategory = listFromCategory;
+module.exports.listFromCategoryAndRoundNumber = listFromCategoryAndRoundNumber;
 module.exports.get = get;
 module.exports.getFromPlayerAndRound = getFromPlayerAndRound;
 module.exports.update = update;
@@ -188,6 +194,19 @@ async function listFromRound(e,tournament_uuid,round_uuid) {
   }
 }
 
+async function listFromRoundNumber(e, tournament_uuid, round_number) {
+  try {
+    let round_request = await RoundsController.getByNumber(null,tournament_uuid,round_number);
+    if(round_request.ok === 1){
+      let round_uuid = round_request.round.uuid;
+
+      return  await listFromRound(null,tournament_uuid,round_uuid);
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+}
 async function listFromCategory(e,tournament_uuid,category_uuid=null,round_uuid=null) {
   try {
     let where = {
@@ -202,30 +221,43 @@ async function listFromCategory(e,tournament_uuid,category_uuid=null,round_uuid=
     const standings = await Standings.findAll({
       where:where,
       order:[
-        ["round_number","ASC"]
+        ["category_place","ASC"]
+      ],
+      include: [
+        {
+          model: Players,
+          as: "player"
+        },
+        {
+          model: Rounds,
+          as: "round"
+        },
+        {
+          model: Tournaments,
+          as: "tournament"
+        },
+        {
+          model: Categories,
+          as: "category"
+        }
       ]
     });
-    let standings_return = [];
-    let i = 0;
-    for(let standing of standings){
-      let standing_return = {
-        uuid: standing.uuid,
-        place: standing.place,
-        category_place: standing.category_place,
-        round_number: standing.round_number,
-        points: standing.points,
-        tiebreaks: standing.tiebreaks,
-        tournament_uuid: standing.tournamentUuid,
-        player_uuid: standing.playerUuid,
-        category_uuid: standing.categoryUuid,
-        round_uuid: standing.roundUuid,
-      };
-
-      standings_return[i++] = standing_return;
-    }
-    return {ok:1,error:0,standings:standings_return};
+    return { ok: 1, error: 0, standings: await StandingDTO.convertToExportList(standings) };
   } catch (error) {
       console.log(error);
+  }
+}
+async function listFromCategoryAndRoundNumber(e, tournament_uuid, category_uuid, round_number) {
+  try {
+    let round_request = await RoundsController.getByNumber(null, tournament_uuid, round_number);
+    if (round_request.ok === 1) {
+      let round_uuid = round_request.round.uuid;
+
+      return await listFromCategory(null, tournament_uuid, category_uuid, round_uuid);
+    }
+
+  } catch (error) {
+    console.log(error);
   }
 }
 

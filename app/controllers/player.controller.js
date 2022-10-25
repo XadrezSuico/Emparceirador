@@ -187,10 +187,10 @@ async function listFromTournamentByPoints(event,tournament_uuid, orderings = [])
     let groups_return = [];
     let i = [];
     for(let player of players){
-      console.log(player)
+      // console.log(player)
       let standing = player.standings[0];
 
-      console.log(standing.points);
+      // console.log(standing.points);
 
       if (!i[standing.points]){
         i[standing.points] = 0;
@@ -312,7 +312,7 @@ async function reorderPlayers(e,tournament_uuid) {
           i = 1;
           for(let player of retorno_players_to_order.players){
             player.start_number = i++;
-            console.log(player.start_number);
+            // console.log(player.start_number);
 
             update(null,player);
           }

@@ -38,7 +38,7 @@ async function create(event, event_uuid, tournament){
         ordering_sequence:tournament.ordering_sequence,
         tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
       })
-      console.log(resultadoCreate);
+      // console.log(resultadoCreate);
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);

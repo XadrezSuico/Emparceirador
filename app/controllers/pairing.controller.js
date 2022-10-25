@@ -5,6 +5,7 @@ const PlayersController = require('./player.controller');
 const RoundsController = require('./round.controller');
 
 const PlayerDTO = require('../dto/player.dto');
+const PairingDTO = require('../dto/pairing.dto');
 
 const dateHelper = require("../helpers/date.helper");
 const orderingHelper = require("../helpers/ordering.helper");
@@ -37,10 +38,11 @@ module.exports.remove = remove;
 module.exports.removeByRound = removeByRound;
 module.exports.isAllPairingsWithResult = isAllPairingsWithResult;
 module.exports.listPlayerPairings = listPlayerPairings;
+module.exports.hasPlayersPlayed = hasPlayersPlayed;
 
 async function create(event, round_uuid, pairing){
-  console.log("PairingsController.create");
-  console.log(pairing);
+  // console.log("PairingsController.create");
+  // console.log(pairing);
   try {
     let resultadoCreate;
       if(pairing.player_b_uuid){
@@ -145,8 +147,8 @@ async function listFromRound(event,round_uuid) {
         let pairings_return = [];
         let i = 0;
 
-        console.log("Pairings by Round")
-        console.log(pairings)
+        // console.log("Pairings by Round")
+        // console.log(pairings)
 
         for(let pairing of pairings){
 
@@ -322,7 +324,7 @@ async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_
           "place":"a",
           "pairing": pairing
         };
-        console.log("Player Pairing A(".concat(pairing.player_a.uuid).concat("): ").concat(String(pairing.player_a_result)));
+        // console.log("Player Pairing A(".concat(pairing.player_a.uuid).concat("): ").concat(String(pairing.player_a_result)));
 
         player_pairings[pairing.round.number] = player_pairing;
       }
@@ -357,13 +359,14 @@ async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_
           "place":"b",
           "pairing": pairing
         };
-        console.log("Player Pairing B(".concat(pairing.player_b.uuid).concat("): ").concat(String(pairing.player_b_result)));
+        // console.log("Player Pairing B(".concat(pairing.player_b.uuid).concat("): ").concat(String(pairing.player_b_result)));
 
         player_pairings[pairing.round.number] = player_pairing;
       }
     }
 
-    console.log("Pairings Temporary Points(".concat(player_uuid).concat("): ").concat(String(points)));
+    // console.log("Pairings Temporary Points(".concat(player_uuid).concat("): ").concat(String(points)));
+    // console.log(player_pairings);
 
     return {ok:1,error:0,points:points,player_pairings:player_pairings};
   } catch (error) {
@@ -382,5 +385,34 @@ async function isAllPairingsWithResult(e,round_uuid){
     return {ok:1,error:0,result:true}
   }else{
     return {ok:0,error:1,message:"Erro desconhecido"}
+  }
+}
+
+
+
+async function hasPlayersPlayed(e, player_a_uuid,player_b_uuid) {
+  try {
+    let pairing = await Pairings.findOne({
+      where:{
+        [Op.or]: [
+          {
+            player_a_uuid: player_a_uuid,
+            player_b_uuid: player_b_uuid
+          },
+          {
+            player_a_uuid: player_b_uuid,
+            player_b_uuid: player_a_uuid
+          },
+        ]
+      }
+    });
+
+    if(pairing){
+      return { ok: 1, error: 0, result: true, pairing: PairingDTO.convertToExport(pairing) };
+    }
+
+    return { ok: 1, error: 0, result: false };
+  } catch (error) {
+    console.log(error);
   }
 }

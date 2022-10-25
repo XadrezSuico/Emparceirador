@@ -29,6 +29,7 @@ module.exports.listFromTournament = listFromTournament;
 module.exports.listFromRound = listFromRound;
 module.exports.listFromCategory = listFromCategory;
 module.exports.get = get;
+module.exports.getFromPlayerAndRound = getFromPlayerAndRound;
 module.exports.update = update;
 module.exports.remove = remove;
 module.exports.removeByRound = removeByRound;
@@ -179,7 +180,7 @@ async function listFromRound(e,tournament_uuid,round_uuid) {
         }
       ]
     });
-    console.log(standings);
+    // console.log(standings);
     return { ok: 1, error: 0, standings: await StandingDTO.convertToExportList(standings) };
 
   } catch (error) {
@@ -247,6 +248,26 @@ async function get(e,uuid) {
     return {ok:1,error:0,standing:standing_return};
   } catch (error) {
       console.log(error);
+  }
+}
+
+async function getFromPlayerAndRound(e, tournament_uuid, round_uuid, player_uuid) {
+  try {
+    const standing = await Standings.findOne({
+      where:{
+        tournamentUuid: tournament_uuid,
+        roundUuid: round_uuid,
+        playerUuid: player_uuid
+      }
+    });
+
+    if(standing){
+      return { ok: 1, error: 0, standing: await StandingDTO.convertToExport(standing) };
+    }
+    return {ok:0,error:1,message:"Classificação não encontrada"};
+
+  } catch (error) {
+    console.log(error);
   }
 }
 

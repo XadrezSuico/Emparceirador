@@ -16,14 +16,14 @@
 
 
 Initial Chunk Files | Names         |  Raw Size
-main.js             | main          |   5.50 MB |
+main.js             | main          |   5.51 MB |
 styles.css          | styles        | 230.29 kB |
 polyfills.js        | polyfills     | 109.33 kB |
 runtime.js          | runtime       |   6.38 kB |
 
-| Initial Total |   5.84 MB
+| Initial Total |   5.85 MB
 
-Build at: 2022-10-25T21:50:57.176Z - Hash: e71c466a49f41859 - Time: 9914ms
+Build at: 2022-10-26T14:14:01.812Z - Hash: 084b915db4c658f2 - Time: 11839ms
 
 [
   tournaments {
@@ -36,7 +36,7 @@ Build at: 2022-10-25T21:50:57.176Z - Hash: e71c466a49f41859 - Time: 9914ms
       ordering_sequence: [Array],
       tiebreaks: [Array],
       createdAt: 2022-10-21T05:15:07.944Z,
-      updatedAt: 2022-10-25T20:31:25.948Z,
+      updatedAt: 2022-10-26T14:11:57.772Z,
       eventUuid: '60b9ac4e-e606-4042-867f-8b00c1e400b3',
       categories: [Array]
     },
@@ -49,7 +49,7 @@ Build at: 2022-10-25T21:50:57.176Z - Hash: e71c466a49f41859 - Time: 9914ms
       ordering_sequence: [Array],
       tiebreaks: [Array],
       createdAt: 2022-10-21T05:15:07.944Z,
-      updatedAt: 2022-10-25T20:31:25.948Z,
+      updatedAt: 2022-10-26T14:11:57.772Z,
       eventUuid: '60b9ac4e-e606-4042-867f-8b00c1e400b3',
       categories: [Array]
     },
@@ -138,10 +138,10 @@ Build at: 2022-10-25T21:50:57.176Z - Hash: e71c466a49f41859 - Time: 9914ms
 rounds {
   dataValues: {
     id: null,
-    uuid: '24f7481e-0572-44c7-a8b3-549535c4b9c8',
+    uuid: 'eeaf2383-d733-4e4d-893a-23b314025d3a',
     number: 3,
-    createdAt: 2022-10-25T17:10:36.182Z,
-    updatedAt: 2022-10-25T17:10:36.182Z,
+    createdAt: 2022-10-26T13:05:32.918Z,
+    updatedAt: 2022-10-26T13:05:32.918Z,
     tournamentUuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
     tournament: tournaments {
       dataValues: [Object],
@@ -155,10 +155,10 @@ rounds {
   },
   _previousDataValues: {
     id: null,
-    uuid: '24f7481e-0572-44c7-a8b3-549535c4b9c8',
+    uuid: 'eeaf2383-d733-4e4d-893a-23b314025d3a',
     number: 3,
-    createdAt: 2022-10-25T17:10:36.182Z,
-    updatedAt: 2022-10-25T17:10:36.182Z,
+    createdAt: 2022-10-26T13:05:32.918Z,
+    updatedAt: 2022-10-26T13:05:32.918Z,
     tournamentUuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
     tournament: tournaments {
       dataValues: [Object],
@@ -201,7 +201,7 @@ rounds {
       ordering_sequence: [Array],
       tiebreaks: [Array],
       createdAt: 2022-10-21T05:15:07.944Z,
-      updatedAt: 2022-10-25T20:31:25.948Z,
+      updatedAt: 2022-10-26T14:11:57.772Z,
       eventUuid: '60b9ac4e-e606-4042-867f-8b00c1e400b3',
       categories: [Array]
     },
@@ -214,7 +214,207 @@ rounds {
       ordering_sequence: [Array],
       tiebreaks: [Array],
       createdAt: 2022-10-21T05:15:07.944Z,
-      updatedAt: 2022-10-25T20:31:25.948Z,
+      updatedAt: 2022-10-26T14:11:57.772Z,
+      eventUuid: '60b9ac4e-e606-4042-867f-8b00c1e400b3',
+      categories: [Array]
+    },
+    uniqno: 1,
+    _changed: Set(0) {},
+    _options: {
+      isNewRecord: false,
+      _schema: null,
+      _schemaDelimiter: '',
+      include: [Array],
+      includeNames: [Array],
+      includeMap: [Object],
+      includeValidated: true,
+      raw: true,
+      attributes: undefined
+    },
+    isNewRecord: false,
+    categories: [ [categories], [categories] ]
+  }
+}
+rounds {
+  dataValues: {
+    id: null,
+    uuid: 'eeaf2383-d733-4e4d-893a-23b314025d3a',
+    number: 3,
+    createdAt: 2022-10-26T13:05:32.918Z,
+    updatedAt: 2022-10-26T13:05:32.918Z,
+    tournamentUuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
+    tournament: tournaments {
+      dataValues: [Object],
+      _previousDataValues: [Object],
+      uniqno: 1,
+      _changed: Set(0) {},
+      _options: [Object],
+      isNewRecord: false,
+      categories: [Array]
+    }
+  },
+  _previousDataValues: {
+    id: null,
+    uuid: 'eeaf2383-d733-4e4d-893a-23b314025d3a',
+    number: 3,
+    createdAt: 2022-10-26T13:05:32.918Z,
+    updatedAt: 2022-10-26T13:05:32.918Z,
+    tournamentUuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
+    tournament: tournaments {
+      dataValues: [Object],
+      _previousDataValues: [Object],
+      uniqno: 1,
+      _changed: Set(0) {},
+      _options: [Object],
+      isNewRecord: false,
+      categories: [Array]
+    }
+  },
+  uniqno: 1,
+  _changed: Set(0) {},
+  _options: {
+    isNewRecord: false,
+    _schema: null,
+    _schemaDelimiter: '',
+    include: [ [Object] ],
+    includeNames: [ 'tournament' ],
+    includeMap: { tournament: [Object] },
+    includeValidated: true,
+    attributes: [
+      'id',
+      'uuid',
+      'number',
+      'createdAt',
+      'updatedAt',
+      'tournamentUuid'
+    ],
+    raw: true
+  },
+  isNewRecord: false,
+  tournament: tournaments {
+    dataValues: {
+      id: null,
+      uuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
+      name: 'Teste',
+      tournament_type: 'SWISS',
+      rounds_number: 3,
+      ordering_sequence: [Array],
+      tiebreaks: [Array],
+      createdAt: 2022-10-21T05:15:07.944Z,
+      updatedAt: 2022-10-26T14:11:57.772Z,
+      eventUuid: '60b9ac4e-e606-4042-867f-8b00c1e400b3',
+      categories: [Array]
+    },
+    _previousDataValues: {
+      id: null,
+      uuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
+      name: 'Teste',
+      tournament_type: 'SWISS',
+      rounds_number: 3,
+      ordering_sequence: [Array],
+      tiebreaks: [Array],
+      createdAt: 2022-10-21T05:15:07.944Z,
+      updatedAt: 2022-10-26T14:11:57.772Z,
+      eventUuid: '60b9ac4e-e606-4042-867f-8b00c1e400b3',
+      categories: [Array]
+    },
+    uniqno: 1,
+    _changed: Set(0) {},
+    _options: {
+      isNewRecord: false,
+      _schema: null,
+      _schemaDelimiter: '',
+      include: [Array],
+      includeNames: [Array],
+      includeMap: [Object],
+      includeValidated: true,
+      raw: true,
+      attributes: undefined
+    },
+    isNewRecord: false,
+    categories: [ [categories], [categories] ]
+  }
+}
+rounds {
+  dataValues: {
+    id: null,
+    uuid: 'eeaf2383-d733-4e4d-893a-23b314025d3a',
+    number: 3,
+    createdAt: 2022-10-26T13:05:32.918Z,
+    updatedAt: 2022-10-26T13:05:32.918Z,
+    tournamentUuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
+    tournament: tournaments {
+      dataValues: [Object],
+      _previousDataValues: [Object],
+      uniqno: 1,
+      _changed: Set(0) {},
+      _options: [Object],
+      isNewRecord: false,
+      categories: [Array]
+    }
+  },
+  _previousDataValues: {
+    id: null,
+    uuid: 'eeaf2383-d733-4e4d-893a-23b314025d3a',
+    number: 3,
+    createdAt: 2022-10-26T13:05:32.918Z,
+    updatedAt: 2022-10-26T13:05:32.918Z,
+    tournamentUuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
+    tournament: tournaments {
+      dataValues: [Object],
+      _previousDataValues: [Object],
+      uniqno: 1,
+      _changed: Set(0) {},
+      _options: [Object],
+      isNewRecord: false,
+      categories: [Array]
+    }
+  },
+  uniqno: 1,
+  _changed: Set(0) {},
+  _options: {
+    isNewRecord: false,
+    _schema: null,
+    _schemaDelimiter: '',
+    include: [ [Object] ],
+    includeNames: [ 'tournament' ],
+    includeMap: { tournament: [Object] },
+    includeValidated: true,
+    attributes: [
+      'id',
+      'uuid',
+      'number',
+      'createdAt',
+      'updatedAt',
+      'tournamentUuid'
+    ],
+    raw: true
+  },
+  isNewRecord: false,
+  tournament: tournaments {
+    dataValues: {
+      id: null,
+      uuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
+      name: 'Teste',
+      tournament_type: 'SWISS',
+      rounds_number: 3,
+      ordering_sequence: [Array],
+      tiebreaks: [Array],
+      createdAt: 2022-10-21T05:15:07.944Z,
+      updatedAt: 2022-10-26T14:11:57.772Z,
+      eventUuid: '60b9ac4e-e606-4042-867f-8b00c1e400b3',
+      categories: [Array]
+    },
+    _previousDataValues: {
+      id: null,
+      uuid: '39f81f6e-d030-4d3c-9e11-387910c53e86',
+      name: 'Teste',
+      tournament_type: 'SWISS',
+      rounds_number: 3,
+      ordering_sequence: [Array],
+      tiebreaks: [Array],
+      createdAt: 2022-10-21T05:15:07.944Z,
+      updatedAt: 2022-10-26T14:11:57.772Z,
       eventUuid: '60b9ac4e-e606-4042-867f-8b00c1e400b3',
       categories: [Array]
     },

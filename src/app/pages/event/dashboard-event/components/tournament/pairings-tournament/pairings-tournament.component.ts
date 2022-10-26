@@ -6,6 +6,7 @@ import { ElectronService } from '../../../../../../core/services';
 import { Pairing } from '../../../../../../_interfaces/pairing';
 
 import Swal from 'sweetalert2';
+import { TournamentType } from 'src/app/_interfaces/_enums/_tournament_type';
 
 @Component({
   selector: 'app-pairings-tournament',
@@ -92,21 +93,39 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   }
 
   showUnpairRoundModal(){
-    Swal.fire({
-      title: 'Confirmação',
-      html: "Deseja realmente desemparceirar esta rodada?",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sim',
-      cancelButtonText: 'Não'
-    })
-    .then((result) => {
-      if (result.isConfirmed) {
-        this.unPairRound();
-      }
-    })
+    if(this.tournament.tournament_type === TournamentType.SWISS){
+      Swal.fire({
+        title: 'Confirmação',
+        html: "Deseja realmente desemparceirar esta rodada?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sim',
+        cancelButtonText: 'Não'
+      })
+      .then((result) => {
+        if (result.isConfirmed) {
+          this.unPairRound();
+        }
+      })
+    }else{
+      Swal.fire({
+        title: 'Confirmação',
+        html: "Como se trata de um torneio no sistema Schüring/Round-robin/Todos-contra-todos é apenas possível desemparceirar todas as rodadas. Deseja realmente fazer isso?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sim',
+        cancelButtonText: 'Não'
+      })
+      .then((result) => {
+        if (result.isConfirmed) {
+          this.unPairRound();
+        }
+      })
+    }
   }
 
   async unPairRound(){

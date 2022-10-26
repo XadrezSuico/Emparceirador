@@ -5,6 +5,8 @@ import { ElectronService } from '../../../../../../core/services';
 import { Category } from '../../../../../../_interfaces/category';
 import { Player } from '../../../../../../_interfaces/player';
 
+import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-players-tournament',
   templateUrl: './players-tournament.component.html',
@@ -126,6 +128,18 @@ export class PlayersTournamentComponent implements OnInit {
     let retorno = await this.electronService.ipcRenderer.invoke("controller.players.reorderPlayers", this.tournament_uuid);
     if(retorno.ok){
       this.list();
+
+
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Jogadores reordenados com sucesso!',
+        icon: 'success',
+        confirmButtonText: 'Fechar',
+        toast: true,
+        position: 'top-right',
+        timer: 3000,
+        timerProgressBar: true,
+      });
     }
   }
 

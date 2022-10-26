@@ -10,7 +10,8 @@
   </div>
   <div class="col-md-12">
     <button type="button" class="btn btn-lg btn-primary" (click)="generateRound()" *ngIf="selected_round_status.can_pairing">Emparceirar Rodada</button>
-    <button type="button" class="btn btn-sm btn-danger" (click)="showUnpairRoundModal()" *ngIf="selected_round_status.can_unpair && last_round_number > 0">Desfazer Rodada</button>
+    <button type="button" class="btn btn-sm btn-danger" (click)="showUnpairRoundModal()" *ngIf="tournament.tournament_type === 'SWISS' && selected_round_status.can_unpair && last_round_number > 0">Desfazer Rodada</button>
+    <button type="button" class="btn btn-sm btn-danger" (click)="showUnpairRoundModal()" *ngIf="tournament.tournament_type === 'SCHURING' && selected_round_status.can_unpair && last_round_number > 0">Desfazer Torneio</button>
   </div>
 </div>
 <hr/>

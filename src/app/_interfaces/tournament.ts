@@ -11,6 +11,7 @@ export interface Tournament{
   name:string;
   tournament_type:TournamentType;
   rounds_number?:number;
+  table_start_number?:number;
 
   event_uuid?:string;
 

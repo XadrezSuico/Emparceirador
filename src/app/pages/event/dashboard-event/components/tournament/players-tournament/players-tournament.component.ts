@@ -16,10 +16,34 @@ export class PlayersTournamentComponent implements OnInit {
 
   @Input()
   tournament_uuid;
+  @Input()
+  tournament;
+
+
+  @Input()
+  last_round_number;
+  @Input()
+  selected_round_number;
 
   players:Array<Player> = [];
 
   player:Player = {
+    uuid:'',
+    start_number:0,
+    name:'',
+    city: {
+      uuid: '',
+      name:''
+    },
+    club: {
+      uuid: '',
+      name:''
+    },
+    category_uuid: ''
+  };
+
+
+  player_from:Player = {
     uuid:'',
     start_number:0,
     name:'',
@@ -70,6 +94,7 @@ export class PlayersTournamentComponent implements OnInit {
     let  retorno = await this.electronService.ipcRenderer.invoke("controller.players.get", uuid);
     if(retorno.ok){
       this.player = retorno.player;
+      this.player = JSON.parse(JSON.stringify(retorno.player));
 
       this.open(content);
     }
@@ -107,12 +132,52 @@ export class PlayersTournamentComponent implements OnInit {
     let retorno;
     if(this.player.uuid){
       retorno = await this.electronService.ipcRenderer.invoke("controller.players.update", this.player);
+
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Jogador editado com sucesso!',
+        icon: 'success',
+        confirmButtonText: 'Fechar',
+        toast: true,
+        position: 'top-right',
+        timer: 3000,
+        timerProgressBar: true,
+      });
+
+      if(retorno.ok === 1){
+        if(this.player.category_uuid !== this.player_from.category_uuid){
+          this.updateStandings();
+        }
+      }
     }else{
       retorno = await this.electronService.ipcRenderer.invoke("controller.players.create", this.tournament_uuid, this.player);
+
+
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Jogador inserido com sucesso!',
+        icon: 'success',
+        confirmButtonText: 'Fechar',
+        toast: true,
+        position: 'top-right',
+        timer: 3000,
+        timerProgressBar: true,
+      });
     }
     if(retorno.ok){
       this.list();
       this.modalService.dismissAll();
+    }
+  }
+
+
+  async updateStandings(){
+    let first_round_request = await this.electronService.ipcRenderer.invoke("controller.rounds.getByNumber",this.tournament.uuid,1);
+    if(first_round_request.ok === 1){
+      let retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.updateStandings",first_round_request.round.uuid);
+      if(retorno.ok == 1){
+        console.log("Standings updated");
+      }
     }
   }
 

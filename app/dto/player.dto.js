@@ -31,10 +31,17 @@ module.exports.convertToExport = async (player) => {
     category_uuid: player.categoryUuid,
     tournament_uuid: player.tournamentUuid,
 
-    temporary_tournament_info: player.temporary_tournament_info,
-
     standings: (player.standings) ? await StandingDTO.convertToExportList(player.standings) : null,
   }
+}
+
+module.exports.convertToExportList = async (players) => {
+  let players_export = [];
+  let i = 0;
+  for (let player of players) {
+    players_export[players_export.length] = await this.convertToExport(player);
+  }
+  return players_export;
 }
 
 module.exports.convertToImport = async (player) => {

@@ -86,6 +86,7 @@ export class DashboardTournamentComponent implements OnInit {
   tournament:Tournament = {
     uuid:'',
     name:'',
+    rounds_number:0,
     tournament_type: TournamentType.SWISS,
     ordering_sequence: [],
     tiebreaks: [],
@@ -96,10 +97,8 @@ export class DashboardTournamentComponent implements OnInit {
   tournament_edit:Tournament = {
     uuid:'',
     name:'',
-    tournament_type: TournamentType.SWISS,
-    ordering_sequence: [],
-    tiebreaks: [],
-    categories: []
+    rounds_number:0,
+    tournament_type: TournamentType.SWISS
   };
 
   last_round_number:number = 0;
@@ -168,10 +167,10 @@ export class DashboardTournamentComponent implements OnInit {
       if(this.last_round_number > this.tournament_edit.rounds_number && this.tournament_edit.tournament_type === TournamentType.SWISS){
         // error
         Swal.fire({
-            title: 'Erro!',
-            text: "O número de rodadas que deseja limitar o evento é menor que o número de rodadas emparceiradas.",
-            icon: 'error',
-            confirmButtonText: 'Fechar'
+          title: 'Erro!',
+          text: "O número de rodadas que deseja limitar o evento é menor que o número de rodadas emparceiradas.",
+          icon: 'error',
+          confirmButtonText: 'Fechar'
         });
       }else{
         retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.update", this.tournament_uuid, this.tournament_edit);
@@ -186,7 +185,10 @@ export class DashboardTournamentComponent implements OnInit {
             timer: 3000,
             timerProgressBar: true,
           });
-          this.get();
+          await this.get();
+          if(this.last_round_number > 0){
+            await this.updateStandings();
+          }
         }else{
           Swal.fire({
             title: 'Erro!',
@@ -198,12 +200,27 @@ export class DashboardTournamentComponent implements OnInit {
       }
 
     }else{
+      console.log(this.tournament_edit);
       retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.create", this.event_uuid, this.tournament_edit);
 
       if(retorno.ok){
         this.new_tournament_event_emitter.emit(retorno.data.uuid);
-        this.tournament_uuid = retorno.data.uuid;
 
+        this.tournament = {
+          uuid:'',
+          name:'',
+          tournament_type: TournamentType.SWISS,
+          rounds_number:0,
+          ordering_sequence: [],
+          tiebreaks: [],
+          categories: []
+        };
+        this.tournament_edit = {
+          uuid:'',
+          name:'',
+          tournament_type: TournamentType.SWISS,
+          rounds_number:0
+        };
 
         Swal.fire({
           title: 'Sucesso!',
@@ -215,7 +232,6 @@ export class DashboardTournamentComponent implements OnInit {
           timer: 3000,
           timerProgressBar: true,
         });
-        this.get();
       }else{
         Swal.fire({
           title: 'Erro!',
@@ -312,6 +328,16 @@ export class DashboardTournamentComponent implements OnInit {
     }
 
     return number;
+  }
+
+  async updateStandings(){
+    let first_round_request = await this.electronService.ipcRenderer.invoke("controller.rounds.getByNumber",this.tournament.uuid,1);
+    if(first_round_request.ok === 1){
+      let retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.updateStandings",first_round_request.round.uuid);
+      if(retorno.ok == 1){
+        console.log("Standings updated");
+      }
+    }
   }
 
   addOrdering(ordering){

@@ -29,6 +29,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.rounds.generateRound', generateRound)
   ipcMain.handle('controller.rounds.canGenerateNewRound', canGenerateNewRound)
   ipcMain.handle('controller.rounds.unPairRound', unPairRound)
+  ipcMain.handle('controller.rounds.updateStandings', updateStandings)
 }
 
 module.exports.listAll = listAll;
@@ -121,7 +122,7 @@ async function get(e,uuid) {
       ]
     });
 
-    console.log(round);
+    // console.log(round);
 
     return {ok:1,error:0,round:await RoundDTO.convertToExport(round)};
   } catch (error) {
@@ -538,7 +539,7 @@ async function saveSwissPairings(tournament,number,pairings){
 }
 
 async function generateSchuringTournament(tournament){
-  console.log("generateSchuringTournament");
+  // console.log("generateSchuringTournament");
   let players_request = await PlayersController.listFromTournament(null, tournament.uuid, ["START_NUMBER", "ALPHABETICAL"]);
   if(players_request.ok === 1){
     let players = []
@@ -679,40 +680,47 @@ async function updateStandings(e,round_uuid){
 }
 
 async function generateStandingPoints(e, tournament, round, player) {
-  // console.log("generateStandingPoints");
-  let standing = {
-    round_number: round.number,
-    place: 0,
-    category_place:0,
-    points:0,
-    tiebreaks:[],
-    tournament_uuid:tournament.uuid,
-    round_uuid:round.uuid,
-    player_uuid:player.uuid,
-    category_uuid:player.category_uuid
-  };
+  if(tournament && round && player){
+    // console.log("generateStandingPoints");
+    // console.log(player);
+    let standing = {
+      round_number: round.number,
+      place: 0,
+      category_place: 0,
+      points: 0,
+      tiebreaks: [],
+      tournament_uuid: tournament.uuid,
+      round_uuid: round.uuid,
+      player_uuid: player.uuid,
+      category_uuid: player.category_uuid
+    };
 
-  // console.log(round);
+    // console.log(round);
 
-  let pairings_return = await PairingsController.listPlayerPairings(null,tournament.uuid,player.uuid, round.number);
-  // console.log("Player pairings");
-  // console.log(pairings_return);
-  if(pairings_return.ok === 1){
-    for(let player_pairing of pairings_return.player_pairings){
-      if(player_pairing){
-        if(player_pairing.place === "a"){
-          if(!player_pairing.pairing.player_a_wo){
-            standing.points = standing.points + player_pairing.pairing.player_a_result;
-          }
-        }else{
-          if(!player_pairing.pairing.player_b_wo){
-            standing.points = standing.points + player_pairing.pairing.player_b_result;
+    let pairings_return = await PairingsController.listPlayerPairings(null, tournament.uuid, player.uuid, round.number);
+    // console.log("Player pairings");
+    // console.log(pairings_return);
+    if (pairings_return.ok === 1) {
+      for (let player_pairing of pairings_return.player_pairings) {
+        if (player_pairing) {
+          if (player_pairing.pairing.have_result) {
+            if (player_pairing.place === "a") {
+              if (!player_pairing.pairing.player_a_wo) {
+                standing.points = standing.points + player_pairing.pairing.player_a_result;
+              }
+            } else {
+              if (!player_pairing.pairing.player_b_wo) {
+                standing.points = standing.points + player_pairing.pairing.player_b_result;
+              }
+            }
           }
         }
       }
-    }
 
-    await StandingsController.create(null,standing);
+
+
+      await StandingsController.create(null, standing);
+    }
   }
 }
 
@@ -753,7 +761,7 @@ async function orderPlayersTournament(e, tournament, round) {
 
 }
 async function orderPlayersCategories(e, tournament, round) {
-  console.log("orderPlayersCategories");
+  // console.log("orderPlayersCategories");
   // console.log("tournament: ".concat(tournament.uuid));
   // console.log("round: ".concat(round.uuid));
   for (let category of tournament.categories){
@@ -761,12 +769,12 @@ async function orderPlayersCategories(e, tournament, round) {
     if (standings_request.ok === 1) {
       let standings = standings_request.standings;
       // console.log(standings);
-      console.log("standings_request");
+      // console.log("standings_request");
       standings.sort(sortFunction);
       // console.log(standings);
       let place = 1;
       for (let standing of standings) {
-        console.log("category_standing");
+        // console.log("category_standing");
         standing.category_place = place++;
         // console.log("Place: ".concat(String(place-1)));
         // console.log(standing);

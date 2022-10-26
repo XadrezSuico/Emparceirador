@@ -139,13 +139,7 @@ async function listFromTournament(event,tournament_uuid, orderings = []) {
       });
     }
 
-
-    let players_return = [];
-    let i = 0;
-    for(let player of players){
-      players_return[i++] = await PlayerDTO.convertToExport(player);
-    }
-    return {ok:1,error:0,players:players_return};
+    return { ok: 1, error: 0, players: await PlayerDTO.convertToExportList(players)};
   } catch (error) {
       console.log(error);
   }

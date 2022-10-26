@@ -101,26 +101,21 @@ async function create(event, round_uuid, pairing, tournament = null){
 
 async function listAll() {
   try {
-    let pairings = await Pairings.findAll();
-    let pairings_return = [];
-    let i = 0;
-    for(let pair of pairings){
-      let pairing_return = {
-        uuid: pair.uuid,
-        number: pairing.number,
-        player_a_uuid: pair.player_a_uuid,
-        player_a_result: pair.player_a_result,
-        player_a_wo: pair.player_a_wo,
-        player_b_uuid: pair.player_b_uuid,
-        player_b_result: pair.player_b_result,
-        player_b_wo: pair.player_b_wo,
-        have_result: pairing.have_result,
-        is_bye: pair.is_bye,
-      };
-
-      pairings_return[i++] = pairing_return;
-    }
-    return {ok:1,error:0,pairings:pairings_return};
+    let pairings = await Pairings.findAll({
+      include:[
+        {
+          model: Rounds,
+          as: 'round',
+          include:[
+            {
+              model: Tournaments,
+              as:'tournament'
+            }
+          ]
+        }
+      ]
+    });
+    return {ok:1,error:0,pairings:await PairingDTO.convertToExportList(pairings)};
   } catch (error) {
       console.log(error);
   }
@@ -141,7 +136,7 @@ async function listFromRound(event,round_uuid) {
           order:[
             ["number","ASC"]
           ],
-          include:[
+          include: [
             {
               model: Players,
               as: 'player_a',
@@ -171,35 +166,8 @@ async function listFromRound(event,round_uuid) {
           ]
         });
 
-
-        let pairings_return = [];
-        let i = 0;
-
-        // console.log("Pairings by Round")
-        // console.log(pairings)
-
-        for(let pairing of pairings){
-
-          // console.log(pairing);
-
-          let pairing_return = {
-            uuid: pairing.uuid,
-            number: pairing.number,
-            player_a: await PlayerDTO.convertToExport(pairing.player_a),
-            player_a_uuid: pairing.player_a_uuid,
-            player_a_result: pairing.player_a_result,
-            player_a_wo: pairing.player_a_wo,
-            player_b: await PlayerDTO.convertToExport(pairing.player_b),
-            player_b_uuid: pairing.player_b_uuid,
-            player_b_result: pairing.player_b_result,
-            player_b_wo: pairing.player_b_wo,
-            have_result: pairing.have_result,
-            is_bye: pairing.is_bye,
-          };
-
-          pairings_return[i++] = pairing_return;
-        }
-        return {ok:1,error:0,pairings:pairings_return};
+        // return { ok: 1, error: 0, pairings: [] };
+        return { ok: 1, error: 0, pairings: await PairingDTO.convertToExportList(pairings,round_request.round.tournament.table_start_number)};
       }
     // }
   } catch (error) {
@@ -213,21 +181,10 @@ async function get(e,uuid) {
   try {
     let pairing = await Pairings.findByPk(uuid);
 
-    let pairing_return = {
-        uuid: pairing.uuid,
-        number: pairing.number,
-        player_a_uuid: pairing.player_a_uuid,
-        player_a_result: pairing.player_a_result,
-        player_a_wo: pairing.player_a_wo,
-        player_b_uuid: pairing.player_b_uuid,
-        player_b_result: pairing.player_b_result,
-        player_b_wo: pairing.player_b_wo,
-        have_result: pairing.have_result,
-        is_bye: pairing.is_bye,
-        round_uuid: pairing.roundUuid,
-    };
+    if(pairing){
+      return { ok: 1, error: 0, pairing: PairingDTO.convertToExport(pairing) };
+    }
 
-    return {ok:1,error:0,pairing:pairing_return};
   } catch (error) {
       console.log(error);
   }
@@ -353,7 +310,7 @@ async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_
 
         let player_pairing = {
           "place":"a",
-          "pairing": pairing
+          "pairing": await PairingDTO.convertToExport(pairing)
         };
         // console.log("Player Pairing A(".concat(pairing.player_a.uuid).concat("): ").concat(String(pairing.player_a_result)));
 
@@ -387,22 +344,19 @@ async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_
         points = points + pairing.player_b_result;
 
         let player_pairing = {
-          "place":"b",
-          "pairing": pairing
+          "place": "b",
+          "pairing": await PairingDTO.convertToExport(pairing)
         };
-        // console.log("Player Pairing B(".concat(pairing.player_b.uuid).concat("): ").concat(String(pairing.player_b_result)));
 
         player_pairings[pairing.round.number] = player_pairing;
       }
     }
 
-    // console.log("Pairings Temporary Points(".concat(player_uuid).concat("): ").concat(String(points)));
-    // console.log(player_pairings);
-
     return {ok:1,error:0,points:points,player_pairings:player_pairings};
   } catch (error) {
       console.log(error);
   }
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 }
 
 async function isAllPairingsWithResult(e,round_uuid){
@@ -422,9 +376,9 @@ async function isAllPairingsWithResult(e,round_uuid){
 
 
 async function hasPlayersPlayed(e, player_a_uuid,player_b_uuid) {
-  console.log("hasPlayersPlayed");
-  console.log("aUuid: ".concat(player_a_uuid));
-  console.log("bUuid: ".concat(player_b_uuid));
+  // console.log("hasPlayersPlayed");
+  // console.log("aUuid: ".concat(player_a_uuid));
+  // console.log("bUuid: ".concat(player_b_uuid));
   try {
     let pairing = await Pairings.findOne({
       where:{

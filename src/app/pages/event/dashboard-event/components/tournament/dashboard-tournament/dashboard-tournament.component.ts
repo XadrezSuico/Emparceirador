@@ -80,6 +80,9 @@ export class DashboardTournamentComponent implements OnInit {
   @Output()
   new_tournament_event_emitter = new EventEmitter<string>();
 
+  @Output()
+  is_requesting_emmiter = new EventEmitter<boolean>();
+
   tournament:Tournament = {
     uuid:'',
     name:'',
@@ -112,6 +115,10 @@ export class DashboardTournamentComponent implements OnInit {
 
   ngOnInit() {
     this.init();
+  }
+
+  requestingChange(is_requesting:boolean){
+    this.is_requesting_emmiter.emit(is_requesting);
   }
 
   async init(){

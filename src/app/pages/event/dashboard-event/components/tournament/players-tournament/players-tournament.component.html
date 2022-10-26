@@ -166,8 +166,8 @@
         <span *ngIf="!player.club">-</span>
       </td>
       <td>
-        <button class="btn btn-outline-primary" (click)="get(playerForm,player.uuid)">Editar</button>
-        <button class="btn btn-outline-danger" (click)="remove(player.uuid)">Apagar</button>
+        <button class="btn btn-outline-primary btn-functions" (click)="get(playerForm,player.uuid)">Editar</button>
+        <button class="btn btn-outline-danger btn-functions" (click)="showRemoveModal(player)">Apagar</button>
       </td>
     </tr>
   </tbody>

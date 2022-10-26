@@ -124,22 +124,21 @@ async function generateTiebreakDirectEncounter(player_standing){
   if(standing_request.ok === 1){
     let st_c = 0;
     for (let standing of standing_request.standings) {
-      if (standing.points === player_standing.points && standing.player_uuid !== player_standing.player.uuid) {
+      if (standing.points === player_standing.points && standing.player.uuid !== player_standing.player.uuid) {
         standings[st_c++] = standing;
       }
     }
 
-
     // If don't have other players with same points, this tiebreak doesn't work
     if (standings.length === 0) {
-      return 0;
+      return -1;
     }
 
     let points = 0;
     for (standing of standings) {
       let pairing_request = await PairingsController.hasPlayersPlayed(null,player_standing.player.uuid,standing.player.uuid);
       if (pairing_request.ok === 1) {
-        // console.log(pairing_request);
+        console.log(pairing_request);
         if (pairing_request.result) {
           if (!pairing_request.pairing.player_a_wo && !pairing_request.pairing.player_b_wo && !pairing_request.pairing.is_bye){
             if (pairing_request.pairing.player_a_uuid === player_standing.player.uuid) {
@@ -150,14 +149,14 @@ async function generateTiebreakDirectEncounter(player_standing){
           }
         } else {
           // If one of players selected not played with this player, so this tiebreak doesn't work
-          return 0;
+          return -2;
         }
       }
     }
 
     return points;
   }
-  return 0;
+  return -3;
 }
 
 async function generateTieBreakBuchholz(player_standing,better_not_count=0,worst_not_count=0){

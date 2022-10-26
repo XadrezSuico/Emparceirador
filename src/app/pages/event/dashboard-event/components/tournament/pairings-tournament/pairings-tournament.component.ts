@@ -6,7 +6,7 @@ import { ElectronService } from '../../../../../../core/services';
 import { Pairing } from '../../../../../../_interfaces/pairing';
 
 import Swal from 'sweetalert2';
-import { TournamentType } from 'src/app/_interfaces/_enums/_tournament_type';
+import { TournamentType } from '../../../../../../_interfaces/_enums/_tournament_type';
 
 @Component({
   selector: 'app-pairings-tournament',
@@ -23,6 +23,9 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
 
   @Output()
   result_change_emitter = new EventEmitter<void>();
+
+  @Output()
+  is_requesting_emmiter = new EventEmitter<boolean>();
 
   constructor(
     private electronService: ElectronService,
@@ -64,24 +67,40 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   }
 
   async generateRound(){
+    this.is_requesting_emmiter.emit(true);
     let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.generateRound", this.tournament_uuid);
+    console.log("generateRound")
+    console.log(retorno)
     if(retorno.ok){
       this.new_round_emitter.emit(retorno.data.uuid);
 
       this.last_round_number = retorno.data.number;
 
-      this.getPairings();
+      await this.getPairings();
 
-      Swal.fire({
-        title: 'Sucesso!',
-        text: 'Rodada gerada com sucesso!',
-        icon: 'success',
-        confirmButtonText: 'Fechar',
-        toast: true,
-        position: 'top-right',
-        timer: 3000,
-        timerProgressBar: true,
-      });
+      if(this.tournament.tournament_type === TournamentType.SWISS){
+        Swal.fire({
+          title: 'Sucesso!',
+          text: 'Rodada emparceirada com sucesso!',
+          icon: 'success',
+          confirmButtonText: 'Fechar',
+          toast: true,
+          position: 'top-right',
+          timer: 3000,
+          timerProgressBar: true,
+        });
+      }else{
+        Swal.fire({
+          title: 'Sucesso!',
+          text: 'Torneio emparceirado com sucesso!',
+          icon: 'success',
+          confirmButtonText: 'Fechar',
+          toast: true,
+          position: 'top-right',
+          timer: 3000,
+          timerProgressBar: true,
+        });
+      }
     }else{
       Swal.fire({
           title: 'Erro!',
@@ -90,6 +109,8 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
           confirmButtonText: 'Fechar'
       });
     }
+
+    this.is_requesting_emmiter.emit(false);
   }
 
   showUnpairRoundModal(){
@@ -129,6 +150,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   }
 
   async unPairRound(){
+    this.is_requesting_emmiter.emit(true);
     let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.unPairRound", this.tournament_uuid, this.last_round_number);
     if(retorno.ok === 1){
       let retorno_round = await this.electronService.ipcRenderer.invoke("controller.rounds.getLastRound", this.tournament_uuid);
@@ -138,26 +160,39 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.last_round_number = retorno_round.round.number;
         this.selected_round_number = this.last_round_number;
 
-        this.getPairings();
+        await this.getPairings();
       }else{
         this.new_round_emitter.emit(String(0));
 
         this.last_round_number = 0;
         this.selected_round_number = this.last_round_number;
 
-        this.getPairings();
+        await this.getPairings();
       }
 
-      Swal.fire({
-        title: 'Sucesso!',
-        text: 'Rodada desemparceirada com sucesso!',
-        icon: 'success',
-        confirmButtonText: 'Fechar',
-        toast: true,
-        position: 'top-right',
-        timer: 3000,
-        timerProgressBar: true,
-      });
+      if(this.tournament.tournament_type === TournamentType.SWISS){
+        Swal.fire({
+          title: 'Sucesso!',
+          text: 'Rodada desemparceirada com sucesso!',
+          icon: 'success',
+          confirmButtonText: 'Fechar',
+          toast: true,
+          position: 'top-right',
+          timer: 3000,
+          timerProgressBar: true,
+        });
+      }else{
+        Swal.fire({
+          title: 'Sucesso!',
+          text: 'Torneio desemparceirado com sucesso!',
+          icon: 'success',
+          confirmButtonText: 'Fechar',
+          toast: true,
+          position: 'top-right',
+          timer: 3000,
+          timerProgressBar: true,
+        });
+      }
     }else{
       Swal.fire({
           title: 'Erro!',
@@ -166,6 +201,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
           confirmButtonText: 'Fechar'
       });
     }
+    this.is_requesting_emmiter.emit(false);
   }
 
   // newRoundEvent(round_number:number){
@@ -183,55 +219,72 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
   }
 
   async statusSelectedRound(){
-    if(Number(this.selected_round_number) === Number(this.last_round_number)){
-      if(Number(this.last_round_number) === 0){
-        this.selected_round_status = {
-          can_pairing: true,
-          can_unpair: true,
-          message: "Torneio apto para primeiro emparceiramento"
-        }
-      }else if(Number(this.tournament.rounds_number) === this.last_round_number){
-        this.selected_round_status = {
-          can_pairing: false,
-          can_unpair: true,
-          message: "Última rodada - Não é mais possível efetuar emparceiramentos."
-        }
-      }else{
-        let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.canGenerateNewRound", this.tournament_uuid);
-        console.log(retorno);
-        if(retorno.ok){
-          if(retorno.result){
-            this.selected_round_status = {
-              can_pairing: true,
-              can_unpair: true,
-              message: "Apto para emparceiramento"
+    if(this.tournament.tournament_type === TournamentType.SWISS){
+      if(Number(this.selected_round_number) === Number(this.last_round_number)){
+        if(Number(this.last_round_number) === 0){
+          this.selected_round_status = {
+            can_pairing: true,
+            can_unpair: false,
+            message: "Torneio apto para primeiro emparceiramento"
+          }
+        }else if(Number(this.tournament.rounds_number) === this.last_round_number){
+          this.selected_round_status = {
+            can_pairing: false,
+            can_unpair: true,
+            message: "Última rodada - Não é mais possível efetuar emparceiramentos."
+          }
+        }else{
+          let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.canGenerateNewRound", this.tournament_uuid);
+          console.log(retorno);
+          if(retorno.ok){
+            if(retorno.result){
+              this.selected_round_status = {
+                can_pairing: true,
+                can_unpair: true,
+                message: "Apto para emparceiramento"
+              }
+            }else{
+              this.selected_round_status = {
+                can_pairing: false,
+                can_unpair: true,
+                message: retorno.message
+              }
             }
           }else{
             this.selected_round_status = {
               can_pairing: false,
               can_unpair: true,
-              message: retorno.message
+              message: "-"
             }
           }
-        }else{
-          this.selected_round_status = {
-            can_pairing: false,
-            can_unpair: true,
-            message: "-"
-          }
+        }
+      }else{
+        this.selected_round_status = {
+          can_pairing: false,
+          can_unpair: false,
+          message: "A rodada não é a mais atual - Altere para a rodada mais atual para que seja possível emparceirar."
         }
       }
     }else{
-      this.selected_round_status = {
-        can_pairing: false,
-        can_unpair: false,
-        message: "A rodada não é a mais atual - Altere para a rodada mais atual para que seja possível emparceirar."
+      if(Number(this.last_round_number) === 0){
+        this.selected_round_status = {
+          can_pairing: true,
+          can_unpair: false,
+          message: "Torneio apto para emparceiramento"
+        }
+      }else{
+        this.selected_round_status = {
+          can_pairing: false,
+          can_unpair: true,
+          message: "Torneio em andamento"
+        }
       }
     }
   }
 
   async getPairings(){
     this.row_selected = -1;
+    this.pairings = [];
     console.log("Round Selected: ".concat(String(this.selected_round_number)));
 
     if(this.selected_round_number > 0){
@@ -267,10 +320,10 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
 
   getPairingResult(pairing){
     if(pairing.have_result){
+      if(pairing.is_bye){
+        return "".concat(String(pairing.player_a_result)).concat("");
+      }
       if(pairing.player_a_result || pairing.player_b_result){
-        if(pairing.is_bye){
-          return "".concat(String(pairing.player_a_result)).concat("");
-        }
         if(pairing.player_a_result && pairing.player_b_wo){
           return "+ | -";
         }

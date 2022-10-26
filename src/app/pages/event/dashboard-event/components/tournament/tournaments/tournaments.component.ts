@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { faChess, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { ElectronService } from '../../../../../../core/services';
 import { Tournament } from '../../../../../../_interfaces/tournament';
@@ -15,6 +15,9 @@ export class TournamentsComponent implements OnInit, AfterViewInit {
   @Input()
   event_uuid;
 
+  @Output()
+  is_requesting_emmiter = new EventEmitter<boolean>();
+
   tournaments:Array<Tournament>;
   tournament:Tournament;
   constructor(
@@ -26,6 +29,10 @@ export class TournamentsComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+  }
+
+  async requestingChange(is_requesting:boolean){
+    this.is_requesting_emmiter.emit(is_requesting);
   }
 
   async getTournaments(){

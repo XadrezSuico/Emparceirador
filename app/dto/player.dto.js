@@ -3,6 +3,9 @@ const StandingDTO = require('./standing_wop.dto');
 const dateHelper = require('../helpers/date.helper');
 
 module.exports.convertToExport = async (player) => {
+  if (!player){
+    return null;
+  }
   return {
     uuid: player.uuid,
     start_number: player.start_number,

@@ -63,6 +63,7 @@
           [tournament]="tournament"
 
           (new_round_emitter)="onNewRound($event)"
+          (is_requesting_emmiter)="requestingChange($event)"
           (result_change_emitter)="onResultChange()"
         ></app-pairings-tournament>
       </ng-template>

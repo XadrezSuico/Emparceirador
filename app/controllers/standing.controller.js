@@ -39,6 +39,7 @@ module.exports.getFromPlayerAndRound = getFromPlayerAndRound;
 module.exports.update = update;
 module.exports.remove = remove;
 module.exports.removeByRound = removeByRound;
+module.exports.removeByTournament = removeByTournament;
 
 async function create(event, standing){
   try {
@@ -329,7 +330,7 @@ async function remove(e,uuid) {
     let standing = await Standings.findByPk(uuid);
 
     if(standing){
-      Standings.destroy({
+      await Standings.destroy({
         where: {
           uuid: uuid
         }
@@ -345,9 +346,22 @@ async function remove(e,uuid) {
 }
 async function removeByRound(e, round_uuid) {
   try {
-    Standings.destroy({
+    await Standings.destroy({
       where: {
         roundUuid: round_uuid
+      }
+    });
+    return { ok: 1, error: 0 };
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+async function removeByTournament(e, tournament_uuid) {
+  try {
+    await Standings.destroy({
+      where: {
+        tournamentUuid: tournament_uuid
       }
     });
     return { ok: 1, error: 0 };

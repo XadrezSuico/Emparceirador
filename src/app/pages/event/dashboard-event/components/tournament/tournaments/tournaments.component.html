@@ -8,7 +8,10 @@
   <ng-container ngbNavItem *ngFor="let tournament of tournaments">
     <a ngbNavLink><fa-icon [icon]="tournament_icon"></fa-icon> {{tournament.name}}</a>
     <ng-template ngbNavContent>
-      <app-dashboard-tournament [event_uuid]="event_uuid" [tournament_uuid]="tournament.uuid"></app-dashboard-tournament>
+      <app-dashboard-tournament
+        [event_uuid]="event_uuid"
+        [tournament_uuid]="tournament.uuid"
+        (is_requesting_emmiter)="requestingChange($event)"></app-dashboard-tournament>
     </ng-template>
   </ng-container>
 </nav>

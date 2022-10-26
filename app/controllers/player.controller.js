@@ -103,13 +103,39 @@ async function listFromTournament(event,tournament_uuid, orderings = []) {
         where: {
           tournamentUuid: tournament_uuid
         },
-        order: orders
+        order: orders,
+        include: [
+          {
+            model: Categories,
+            as: 'category'
+          },
+          {
+            model: Standings,
+            as: 'standings',
+            order: [
+              ["round_number", "DESC"]
+            ]
+          }
+        ]
       });
     }else{
       players = await Players.findAll({
         where: {
           tournamentUuid: tournament_uuid
-        }
+        },
+        include: [
+          {
+            model: Categories,
+            as: 'category'
+          },
+          {
+            model: Standings,
+            as: 'standings',
+            order: [
+              ["round_number", "DESC"]
+            ]
+          }
+        ]
       });
     }
 
@@ -262,7 +288,7 @@ async function update(e,player){
 
 async function getLastNumber(tournament_uuid){
   let retorno = await listFromTournament(null,tournament_uuid);
-  if(retorno.ok == 1){
+  if(retorno.ok === 1){
     if(retorno.players.length > 0){
       return retorno.players.length;
     }
@@ -272,15 +298,20 @@ async function getLastNumber(tournament_uuid){
 
 async function remove(e,uuid) {
   try {
+    console.log(uuid);
     let player = await Players.findByPk(uuid);
 
     if(player){
-      Players.destroy({
+      let rows = await Players.destroy({
         where: {
           uuid: uuid
         }
       });
-      return {ok:1,error:0};
+      if(rows === 1){
+        return { ok: 1, error: 0 };
+      }else{
+        return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
+      }
     }else{
       return {ok:0,error:1,message:"Jogador não encontrado"};
     }

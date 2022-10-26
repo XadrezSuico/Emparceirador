@@ -1,7 +1,7 @@
 module.exports.orderingSqlField = (ordering) => {
   switch(ordering){
     case "BORNDATE":
-      return ["borndate","ASC"];
+      return ["borndate","ASC NULLS LAST"];
     case "ALPHABETICAL":
       return ["name","ASC"];
     case "INTERNAL_RATING":

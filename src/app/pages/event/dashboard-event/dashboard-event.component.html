@@ -1,3 +1,6 @@
+<div class="requesting-overlay" *ngIf="is_requesting">
+  <fa-icon [icon]="faSyncAlt" [spin]="true" size="5x"></fa-icon>
+</div>
 <ng-template #eventForm let-modal>
   <div class="modal-header">
     <h4 class="modal-title" id="modal-basic-title">Editar Evento</h4>
@@ -61,7 +64,9 @@
           Administrar Torneios
         </div>
         <div class="card-body">
-          <app-tournaments [event_uuid]="event_uuid"></app-tournaments>
+          <app-tournaments
+            [event_uuid]="event_uuid"
+            (is_requesting_emmiter)="requestingChange($event)"></app-tournaments>
         </div>
       </div>
     </div>

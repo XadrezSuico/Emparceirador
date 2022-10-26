@@ -11,6 +11,8 @@ import { TournamentType } from '../../../../../../_interfaces/_enums/_tournament
 import { Subject } from 'rxjs';
 import { Tiebreak } from '../../../../../../_interfaces/_enums/_tiebreak';
 
+import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-dashboard-tournament',
   templateUrl: './dashboard-tournament.component.html',
@@ -78,7 +80,20 @@ export class DashboardTournamentComponent implements OnInit {
   @Output()
   new_tournament_event_emitter = new EventEmitter<string>();
 
+  @Output()
+  is_requesting_emmiter = new EventEmitter<boolean>();
+
   tournament:Tournament = {
+    uuid:'',
+    name:'',
+    tournament_type: TournamentType.SWISS,
+    ordering_sequence: [],
+    tiebreaks: [],
+    categories: []
+  };
+
+
+  tournament_edit:Tournament = {
     uuid:'',
     name:'',
     tournament_type: TournamentType.SWISS,
@@ -102,6 +117,10 @@ export class DashboardTournamentComponent implements OnInit {
     this.init();
   }
 
+  requestingChange(is_requesting:boolean){
+    this.is_requesting_emmiter.emit(is_requesting);
+  }
+
   async init(){
     if(this.tournament_uuid){
       await this.get();
@@ -114,6 +133,11 @@ export class DashboardTournamentComponent implements OnInit {
     console.log("dashboard-tournament get");
     if(retorno.ok){
       this.tournament = retorno.tournament;
+      this.tournament_edit = JSON.parse(JSON.stringify(retorno.tournament));
+
+      console.log("dashboard-tournament get");
+      console.log(this.tournament);
+      console.log(this.tournament_edit);
 
       this.registerNotSelectedOrdering();
 
@@ -141,14 +165,67 @@ export class DashboardTournamentComponent implements OnInit {
     console.log("dashboard-tournament save");
     let retorno;
     if(this.tournament_uuid){
-      retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.update", this.tournament_uuid, this.tournament);
+      if(this.last_round_number > this.tournament_edit.rounds_number && this.tournament_edit.tournament_type === TournamentType.SWISS){
+        // error
+        Swal.fire({
+            title: 'Erro!',
+            text: "O número de rodadas que deseja limitar o evento é menor que o número de rodadas emparceiradas.",
+            icon: 'error',
+            confirmButtonText: 'Fechar'
+        });
+      }else{
+        retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.update", this.tournament_uuid, this.tournament_edit);
+        if(retorno.ok === 1){
+          Swal.fire({
+            title: 'Sucesso!',
+            text: 'Torneio atualizado com sucesso!',
+            icon: 'success',
+            confirmButtonText: 'Fechar',
+            toast: true,
+            position: 'top-right',
+            timer: 3000,
+            timerProgressBar: true,
+          });
+          this.get();
+        }else{
+          Swal.fire({
+            title: 'Erro!',
+            text: retorno.message,
+            icon: 'error',
+            confirmButtonText: 'Fechar'
+          });
+        }
+      }
+
     }else{
-      retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.create", this.event_uuid, this.tournament);
+      retorno = await this.electronService.ipcRenderer.invoke("controller.tournaments.create", this.event_uuid, this.tournament_edit);
 
       if(retorno.ok){
         this.new_tournament_event_emitter.emit(retorno.data.uuid);
+        this.tournament_uuid = retorno.data.uuid;
+
+
+        Swal.fire({
+          title: 'Sucesso!',
+          text: 'Torneio criado com sucesso!',
+          icon: 'success',
+          confirmButtonText: 'Fechar',
+          toast: true,
+          position: 'top-right',
+          timer: 3000,
+          timerProgressBar: true,
+        });
+        this.get();
+      }else{
+        Swal.fire({
+          title: 'Erro!',
+          text: retorno.message,
+          icon: 'error',
+          confirmButtonText: 'Fechar'
+        });
       }
     }
+
     console.log(retorno);
   }
 
@@ -189,8 +266,8 @@ export class DashboardTournamentComponent implements OnInit {
   }
 
   registerNotSelectedOrdering(){
-    if(!this.tournament.ordering_sequence){
-      this.tournament.ordering_sequence = [];
+    if(!this.tournament_edit.ordering_sequence){
+      this.tournament_edit.ordering_sequence = [];
     }
 
     this.list_orderings_not_selected = [];
@@ -198,7 +275,7 @@ export class DashboardTournamentComponent implements OnInit {
     let orderings = [];
 
     for(let ordering_item of this.list_orderings){
-      if(!this.tournament.ordering_sequence.includes(ordering_item.value)){
+      if(!this.tournament_edit.ordering_sequence.includes(ordering_item.value)){
         this.list_orderings_not_selected.push(ordering_item);
       }
     }
@@ -238,9 +315,9 @@ export class DashboardTournamentComponent implements OnInit {
   }
 
   addOrdering(ordering){
-    if(this.tournament.ordering_sequence){
-      if(!this.tournament.ordering_sequence.includes(ordering)){
-        this.tournament.ordering_sequence.push(ordering);
+    if(this.tournament_edit.ordering_sequence){
+      if(!this.tournament_edit.ordering_sequence.includes(ordering)){
+        this.tournament_edit.ordering_sequence.push(ordering);
       }
 
       this.registerNotSelectedOrdering();
@@ -248,29 +325,29 @@ export class DashboardTournamentComponent implements OnInit {
   }
 
   putToUpOrdering(i){
-    if(this.tournament.ordering_sequence){
+    if(this.tournament_edit.ordering_sequence){
       if(i > 0){
-        let item_to_put_in_up_position = this.tournament.ordering_sequence[i];
-        let item_to_put_in_down_position = this.tournament.ordering_sequence[i-1];
+        let item_to_put_in_up_position = this.tournament_edit.ordering_sequence[i];
+        let item_to_put_in_down_position = this.tournament_edit.ordering_sequence[i-1];
 
-        this.tournament.ordering_sequence[i-1] = item_to_put_in_up_position;
-        this.tournament.ordering_sequence[i] = item_to_put_in_down_position;
+        this.tournament_edit.ordering_sequence[i-1] = item_to_put_in_up_position;
+        this.tournament_edit.ordering_sequence[i] = item_to_put_in_down_position;
       }
     }
   }
   putToDownOrdering(i){
-    if(this.tournament.ordering_sequence){
-      let item_to_put_in_up_position = this.tournament.ordering_sequence[i+1];
-      let item_to_put_in_down_position = this.tournament.ordering_sequence[i];
+    if(this.tournament_edit.ordering_sequence){
+      let item_to_put_in_up_position = this.tournament_edit.ordering_sequence[i+1];
+      let item_to_put_in_down_position = this.tournament_edit.ordering_sequence[i];
 
-      this.tournament.ordering_sequence[i] = item_to_put_in_up_position;
-      this.tournament.ordering_sequence[i+1] = item_to_put_in_down_position;
+      this.tournament_edit.ordering_sequence[i] = item_to_put_in_up_position;
+      this.tournament_edit.ordering_sequence[i+1] = item_to_put_in_down_position;
     }
   }
   removeOrdering(i){
-    if(this.tournament.ordering_sequence){
-      if(i < this.tournament.ordering_sequence.length && i >= 0){
-        this.tournament.ordering_sequence.splice(i,1);
+    if(this.tournament_edit.ordering_sequence){
+      if(i < this.tournament_edit.ordering_sequence.length && i >= 0){
+        this.tournament_edit.ordering_sequence.splice(i,1);
 
         this.registerNotSelectedOrdering();
       }
@@ -363,18 +440,18 @@ export class DashboardTournamentComponent implements OnInit {
       let i = 0;
       let j = 0;
       for(let tiebreak of retorno.tiebreaks){
-        switch(this.tournament.tournament_type){
+        switch(this.tournament_edit.tournament_type){
           case TournamentType.SWISS:
             if(tiebreak.is_swiss){
-              this.tiebreak_types[j++] = tiebreak;
+              this.tiebreak_types[this.tiebreak_types.length] = tiebreak;
             }
             break;
           case TournamentType.SCHURING:
             if(tiebreak.is_schuring){
-              this.tiebreak_types[j++] = tiebreak;
+              this.tiebreak_types[this.tiebreak_types.length] = tiebreak;
             }
         }
-        this.tiebreaks[i++] = tiebreak;
+        this.tiebreaks[this.tiebreaks.length] = tiebreak;
         this.tiebreaks_by_id[tiebreak.id] = tiebreak;
       }
 
@@ -386,25 +463,23 @@ export class DashboardTournamentComponent implements OnInit {
 
 
   registerNotSelectedTiebreaks(){
-    if(!this.tournament.tiebreaks){
-      this.tournament.tiebreaks = [];
+    if(!this.tournament_edit.tiebreaks){
+      this.tournament_edit.tiebreaks = [];
     }
 
     this.tiebreaks_not_selected = [];
 
-    let orderings = [];
-
     for(let tiebreak of this.tiebreak_types){
-      if(!this.tournament.tiebreaks.includes(tiebreak.id)){
+      if(!this.tournament_edit.tiebreaks.includes(tiebreak.id)){
         this.tiebreaks_not_selected.push(tiebreak);
       }
     }
   }
 
   addTiebreak(tiebreak_id){
-    if(this.tournament.tiebreaks){
-      if(!this.tournament.tiebreaks.includes(tiebreak_id)){
-        this.tournament.tiebreaks.push(tiebreak_id);
+    if(this.tournament_edit.tiebreaks){
+      if(!this.tournament_edit.tiebreaks.includes(tiebreak_id)){
+        this.tournament_edit.tiebreaks.push(tiebreak_id);
       }
 
       this.registerNotSelectedTiebreaks();
@@ -412,29 +487,29 @@ export class DashboardTournamentComponent implements OnInit {
   }
 
   putToUpTiebreak(i){
-    if(this.tournament.tiebreaks){
+    if(this.tournament_edit.tiebreaks){
       if(i > 0){
-        let item_to_put_in_up_position = this.tournament.tiebreaks[i];
-        let item_to_put_in_down_position = this.tournament.tiebreaks[i-1];
+        let item_to_put_in_up_position = this.tournament_edit.tiebreaks[i];
+        let item_to_put_in_down_position = this.tournament_edit.tiebreaks[i-1];
 
-        this.tournament.tiebreaks[i-1] = item_to_put_in_up_position;
-        this.tournament.tiebreaks[i] = item_to_put_in_down_position;
+        this.tournament_edit.tiebreaks[i-1] = item_to_put_in_up_position;
+        this.tournament_edit.tiebreaks[i] = item_to_put_in_down_position;
       }
     }
   }
   putToDownTiebreak(i){
-    if(this.tournament.tiebreaks){
-      let item_to_put_in_up_position = this.tournament.tiebreaks[i+1];
-      let item_to_put_in_down_position = this.tournament.tiebreaks[i];
+    if(this.tournament_edit.tiebreaks){
+      let item_to_put_in_up_position = this.tournament_edit.tiebreaks[i+1];
+      let item_to_put_in_down_position = this.tournament_edit.tiebreaks[i];
 
-      this.tournament.tiebreaks[i] = item_to_put_in_up_position;
-      this.tournament.tiebreaks[i+1] = item_to_put_in_down_position;
+      this.tournament_edit.tiebreaks[i] = item_to_put_in_up_position;
+      this.tournament_edit.tiebreaks[i+1] = item_to_put_in_down_position;
     }
   }
   removeTiebreak(i){
-    if(this.tournament.tiebreaks){
-      if(i < this.tournament.tiebreaks.length && i >= 0){
-        this.tournament.tiebreaks.splice(i,1);
+    if(this.tournament_edit.tiebreaks){
+      if(i < this.tournament_edit.tiebreaks.length && i >= 0){
+        this.tournament_edit.tiebreaks.splice(i,1);
 
         this.registerNotSelectedTiebreaks();
       }

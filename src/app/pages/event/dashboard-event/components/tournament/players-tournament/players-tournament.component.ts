@@ -5,6 +5,8 @@ import { ElectronService } from '../../../../../../core/services';
 import { Category } from '../../../../../../_interfaces/category';
 import { Player } from '../../../../../../_interfaces/player';
 
+import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-players-tournament',
   templateUrl: './players-tournament.component.html',
@@ -114,10 +116,44 @@ export class PlayersTournamentComponent implements OnInit {
     }
   }
 
+  showRemoveModal(player){
+    Swal.fire({
+      title: 'Confirmação',
+      html: "Deseja realmente remover o jogador '".concat(player.name).concat(" (No. ").concat(player.start_number).concat(")'?"),
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sim',
+      cancelButtonText: 'Não'
+    })
+    .then((result) => {
+      if (result.isConfirmed) {
+        this.remove(player.uuid);
+      }
+    })
+  }
   async remove(uuid){
     let retorno = await this.electronService.ipcRenderer.invoke("controller.players.remove", uuid);
-    if(retorno.ok){
+    if(retorno.ok === 1){
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Jogador removido com sucesso!',
+        icon: 'success',
+        confirmButtonText: 'Fechar',
+        toast: true,
+        position: 'top-right',
+        timer: 3000,
+        timerProgressBar: true,
+      });
       this.list();
+    }else{
+      Swal.fire({
+        title: 'Erro!',
+        text: retorno.message,
+        icon: 'error',
+        confirmButtonText: 'Fechar'
+      });
     }
   }
 
@@ -126,6 +162,18 @@ export class PlayersTournamentComponent implements OnInit {
     let retorno = await this.electronService.ipcRenderer.invoke("controller.players.reorderPlayers", this.tournament_uuid);
     if(retorno.ok){
       this.list();
+
+
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Jogadores reordenados com sucesso!',
+        icon: 'success',
+        confirmButtonText: 'Fechar',
+        toast: true,
+        position: 'top-right',
+        timer: 3000,
+        timerProgressBar: true,
+      });
     }
   }
 

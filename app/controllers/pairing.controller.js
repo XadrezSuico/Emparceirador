@@ -36,11 +36,12 @@ module.exports.get = get;
 module.exports.update = update;
 module.exports.remove = remove;
 module.exports.removeByRound = removeByRound;
+module.exports.removeByRounds = removeByRounds;
 module.exports.isAllPairingsWithResult = isAllPairingsWithResult;
 module.exports.listPlayerPairings = listPlayerPairings;
 module.exports.hasPlayersPlayed = hasPlayersPlayed;
 
-async function create(event, round_uuid, pairing){
+async function create(event, round_uuid, pairing, tournament = null){
   // console.log("PairingsController.create");
   // console.log(pairing);
   try {
@@ -54,15 +55,42 @@ async function create(event, round_uuid, pairing){
           roundUuid: round_uuid,
         })
       }else{
-        resultadoCreate = await Pairings.create({
-          number: pairing.number,
-          player_a_uuid: pairing.player_a_uuid,
-          player_a_result: 1,
-          player_b_result: 0,
-          is_bye: true,
+        if(tournament){
+          if (tournament.tournament_type === "SWISS") {
+            resultadoCreate = await Pairings.create({
+              number: pairing.number,
+              player_a_uuid: pairing.player_a_uuid,
+              player_a_result: 1,
+              player_b_result: 0,
+              is_bye: true,
+              have_result: true,
 
-          roundUuid: round_uuid,
-        })
+              roundUuid: round_uuid,
+            })
+          }else{
+            resultadoCreate = await Pairings.create({
+              number: pairing.number,
+              player_a_uuid: pairing.player_a_uuid,
+              player_a_result: 0,
+              player_b_result: 0,
+              is_bye: true,
+              have_result: true,
+
+              roundUuid: round_uuid,
+            })
+          }
+        }else{
+          resultadoCreate = await Pairings.create({
+            number: pairing.number,
+            player_a_uuid: pairing.player_a_uuid,
+            player_a_result: 1,
+            player_b_result: 0,
+            is_bye: true,
+            have_result: true,
+
+            roundUuid: round_uuid,
+          })
+        }
       }
       // console.log(resultadoCreate);
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
@@ -257,7 +285,7 @@ async function remove(e,uuid) {
 
 async function removeByRound(e, round_uuid) {
   try {
-    Pairings.destroy({
+    await Pairings.destroy({
       where: {
         roundUuid: round_uuid
       }
@@ -268,13 +296,15 @@ async function removeByRound(e, round_uuid) {
     console.log(error);
   }
 }
-
-
-async function removeByRound(e, round_uuid) {
+async function removeByRounds(e, rounds_uuid = []) {
+  // console.log("removeByRounds");
+  // console.log(rounds_uuid);
   try {
-    Pairings.destroy({
+    await Pairings.destroy({
       where: {
-        roundUuid: round_uuid
+        roundUuid: {
+          [Op.in]: rounds_uuid
+        }
       }
     });
     return { ok: 1, error: 0 };
@@ -283,6 +313,7 @@ async function removeByRound(e, round_uuid) {
     console.log(error);
   }
 }
+
 
 async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_number = null) {
   try {
@@ -391,6 +422,9 @@ async function isAllPairingsWithResult(e,round_uuid){
 
 
 async function hasPlayersPlayed(e, player_a_uuid,player_b_uuid) {
+  console.log("hasPlayersPlayed");
+  console.log("aUuid: ".concat(player_a_uuid));
+  console.log("bUuid: ".concat(player_b_uuid));
   try {
     let pairing = await Pairings.findOne({
       where:{
@@ -408,7 +442,7 @@ async function hasPlayersPlayed(e, player_a_uuid,player_b_uuid) {
     });
 
     if(pairing){
-      return { ok: 1, error: 0, result: true, pairing: PairingDTO.convertToExport(pairing) };
+      return { ok: 1, error: 0, result: true, pairing: await PairingDTO.convertToExport(pairing) };
     }
 
     return { ok: 1, error: 0, result: false };

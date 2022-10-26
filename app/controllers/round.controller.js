@@ -14,6 +14,8 @@ const { last } = require('rxjs');
 const Tournaments = require('../models/tournament.model');
 const Categories = require('../models/category.basic.model');
 
+const pairsCalc = require('robin-js'); // CJS
+
 module.exports.setEvents = (ipcMain) => {
   database.sync();
 
@@ -173,7 +175,7 @@ async function remove(e, uuid) {
     let round = await Rounds.findByPk(uuid);
 
     if (round) {
-      Rounds.destroy({
+      await Rounds.destroy({
         where: {
           uuid: uuid
         }
@@ -182,6 +184,19 @@ async function remove(e, uuid) {
     } else {
       return { ok: 0, error: 1, message: "Rodada não encontrada" };
     }
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+async function removeByTournament(e, tournament_uuid) {
+  try {
+    await Rounds.destroy({
+      where: {
+        tournamentUuid: tournament_uuid
+      }
+    });
+    return { ok: 1, error: 0 };
 
   } catch (error) {
     console.log(error);
@@ -248,9 +263,9 @@ async function generateRound(e,tournament_uuid){
       if(retorno_players.players.length > 1){
         switch(tournament.tournament_type){
           case "SWISS":
-            return generateRoundSwiss(tournament);
+            return await generateRoundSwiss(tournament);
           case "SCHURING":
-            return generateRoundSchuring(tournament);
+            return await generateSchuringTournament(tournament);
         }
       }
     }
@@ -263,19 +278,43 @@ async function unPairRound(e, tournament_uuid, round_number) {
   if (retorno_tournament.ok === 1) {
     let tournament = retorno_tournament.tournament;
 
-    let last_round_request = await getLastRound(null,tournament_uuid);
-    if(last_round_request.ok === 1){
-      if (last_round_request.round.number === round_number){
-        await StandingsController.removeByRound(null, last_round_request.round.uuid);
-        await PairingsController.removeByRound(null, last_round_request.round.uuid);
-        await remove(null, last_round_request.round.uuid);
+    if(tournament.tournament_type === "SWISS"){
+      let last_round_request = await getLastRound(null, tournament_uuid);
+      if (last_round_request.ok === 1) {
+        if (last_round_request.round.number === round_number) {
+          await StandingsController.removeByRound(null, last_round_request.round.uuid);
+          await PairingsController.removeByRound(null, last_round_request.round.uuid);
+          await remove(null, last_round_request.round.uuid);
 
-        return {ok:1,error:0}
-      }else{
-        return { ok: 0, error: 1, message: "Não é possível desemparceirar essa rodada. A rodada de número ".concat(String(round_number)).concat(" não é a mais recente.") }
+          return { ok: 1, error: 0 }
+        } else {
+          return { ok: 0, error: 1, message: "Não é possível desemparceirar essa rodada. A rodada de número ".concat(String(round_number)).concat(" não é a mais recente.") }
+        }
+      } else {
+        return { ok: 0, error: 1, message: last_round_request.message };
       }
     }else{
-      return { ok: 0, error: 1, message: last_round_request.message };
+      let remove_standings_from_tournament_request = await StandingsController.removeByTournament(null,tournament.uuid);
+      if (remove_standings_from_tournament_request.ok === 1) {
+        let rounds_request = await listFromTournament(null,tournament.uuid);
+        if(rounds_request.ok === 1){
+          let rounds_uuid = [];
+          for(let round of rounds_request.rounds){
+            rounds_uuid[rounds_uuid.length] = round.uuid;
+          }
+
+          let remove_pairings_from_rounds_request = await PairingsController.removeByRounds(null, rounds_uuid);
+          if (remove_pairings_from_rounds_request.ok === 1) {
+
+            let remove_rounds_from_tournament_request = await removeByTournament(null, tournament.uuid);
+            if (remove_rounds_from_tournament_request.ok === 1) {
+              return { ok: 1, error: 0 }
+            }
+
+          }
+        }
+      }
+      return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
     }
 
   }else{
@@ -498,8 +537,66 @@ async function saveSwissPairings(tournament,number,pairings){
   return {ok:0,error:1,message:"Erro ainda desconhecido"};
 }
 
-async function generateRoundSchuring(){
+async function generateSchuringTournament(tournament){
+  console.log("generateSchuringTournament");
+  let players_request = await PlayersController.listFromTournament(null, tournament.uuid, ["START_NUMBER", "ALPHABETICAL"]);
+  if(players_request.ok === 1){
+    let players = []
+    for(let player of players_request.players){
+      players[players.length] = player;
+    }
 
+    let robinjs_rounds = await pairsCalc(players);
+
+    let round_number = 1;
+    for (let robinjs_round of robinjs_rounds){
+      let pairings = [];
+      let bye_pairing = null;
+      for (let robinjs_pairing of robinjs_round) {
+        if (robinjs_pairing.length === 1) {
+          bye_pairing = [robinjs_pairing[0]];
+        }else{
+          pairings[pairings.length] = robinjs_pairing;
+        }
+      }
+      if (bye_pairing){
+        pairings[pairings.length] = bye_pairing;
+      }
+
+      let retorno = await saveSchuringPairings(tournament, round_number, pairings);
+      if(retorno.ok === 0){
+        return retorno;
+      } else if (round_number === robinjs_rounds.length){
+        return { ok: 1, error: 0, data: retorno.data };
+      }
+      round_number++;
+    }
+
+  }
+}
+async function saveSchuringPairings(tournament, number, pairings) {
+  let round_check = await getByNumber(null, tournament.uuid, number);
+  if (round_check.ok === 0) {
+    let round_create = await create(null, tournament.uuid, { number: number });
+    if (round_create.ok === 1) {
+      let round_uuid = round_create.data.uuid;
+      let i = 1;
+      for (let pairing of pairings) {
+        let request_pairing = {
+          number: i++,
+          player_a_uuid: pairing[0].uuid,
+          player_b_uuid: (pairing[1]) ? pairing[1].uuid : null,
+        };
+
+        let pairing_create = await PairingsController.create(null, round_uuid, request_pairing, tournament);
+      }
+
+      await updateStandings(null, round_uuid);
+
+      return { ok: 1, error: 0, data: { number: number, uuid: round_uuid } };
+    }
+  }
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 }
 
 async function canGenerateNewRound(e, tournament_uuid){
@@ -510,7 +607,7 @@ async function canGenerateNewRound(e, tournament_uuid){
     if(get_last_round.ok === 1){
       let last_round = get_last_round.round;
       // console.log(last_round)
-      if(tournament.tournament_type == "SWISS"){
+      if(tournament.tournament_type === "SWISS"){
         if(tournament.rounds_number === last_round.number){
           return {ok:1,error:0,result:false,message:"Última rodada, não é possível gerar nova rodada"}
         }else{
@@ -523,8 +620,13 @@ async function canGenerateNewRound(e, tournament_uuid){
             }
           }
         }
+      }else{
+        return { ok: 1, error: 0, result: false, message: "O torneio já foi emparceirado." }
       }
     }else{
+      if (tournament.tournament_type === "SCHURING") {
+        return { ok: 1, error: 0, result: true }
+      }
       return { ok: 0, error: 1, message: get_last_round.message }
     }
   }else{

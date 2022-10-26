@@ -3,6 +3,7 @@ import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ElectronService } from '../../../core/services';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-dashboard-event',
@@ -10,6 +11,10 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
   styleUrls: ['./dashboard-event.component.scss']
 })
 export class DashboardEventComponent implements OnInit, AfterViewInit {
+
+  faSyncAlt = faSyncAlt;
+
+  is_requesting:boolean = false;
 
   event_uuid;
   event;
@@ -28,6 +33,9 @@ export class DashboardEventComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit(): void {
     this.getEvent();
+  }
+  requestingChange(is_requesting:boolean){
+    this.is_requesting = is_requesting;
   }
 
   async getEvent(){

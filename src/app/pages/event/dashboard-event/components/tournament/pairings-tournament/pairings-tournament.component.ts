@@ -460,7 +460,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
     if(this.pointsButtonsEnabled()){
       switch(event.key){
         case "0":
-          this.setResult(0,0);
+          this.setEmptyResult();
           return false;
           break;
         case "1":

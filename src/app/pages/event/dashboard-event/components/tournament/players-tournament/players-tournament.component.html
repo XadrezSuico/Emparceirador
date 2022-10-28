@@ -183,17 +183,7 @@
 <button class="btn btn-outline-primary btn-functions" (click)="printReport()">Imprimir Lista</button>
 
 <div #printDiv>
-  <style scoped>
-    .print-heading, .table-heading{
-      font-family: Arial, Helvetica, sans-serif;
-    }
-    .table-heading{
-      width: 100%;
-    }
-  </style>
-  <h3 [ngClass]="{'print-heading': print}" *ngIf="tournament.event && print" class="text-center">{{tournament.event.name}}</h3>
-  <h4 [ngClass]="{'print-heading': print}" *ngIf="print" class="text-center">Torneio: {{tournament.name}}</h4>
-  <table [ngClass]="{'table-heading': print}" class="table table-striped" *ngIf="players">
+  <table class="table table-striped" *ngIf="players">
     <thead>
       <tr>
         <th scope="col">No. Inicial</th>
@@ -231,8 +221,8 @@
           <span *ngIf="!player.club">-</span>
         </td>
         <td>
-          <button class="btn btn-outline-primary btn-functions" *ngIf="!print" (click)="get(playerForm,player.uuid)">Editar</button>
-          <button class="btn btn-outline-danger btn-functions" *ngIf="!print" (click)="showRemoveModal(player)">Apagar</button>
+          <button class="btn btn-outline-primary btn-functions" (click)="get(playerForm,player.uuid)">Editar</button>
+          <button class="btn btn-outline-danger btn-functions" (click)="showRemoveModal(player)">Apagar</button>
         </td>
       </tr>
     </tbody>

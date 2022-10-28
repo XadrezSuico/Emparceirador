@@ -10,12 +10,25 @@ const args = process.argv.slice(1),
 
 let size;
 let browser_window_opts;
+let browser_window_pdf_opts;
 
 
 
 function createWindow(): BrowserWindow {
   size = screen.getPrimaryDisplay().workAreaSize;
 
+  browser_window_pdf_opts = {
+    show: true,
+    x: 0,
+    y: 0,
+    width: size.width,
+    height: size.height,
+    webPreferences: {
+      nodeIntegration: true,
+      allowRunningInsecureContent: (serve),
+      contextIsolation: false,  // false if you want to run e2e test with Spectron
+    },
+  }
   browser_window_opts = {
     x: 0,
     y: 0,
@@ -59,6 +72,10 @@ function createWindow(): BrowserWindow {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     win = null;
+
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
   });
 
   return win;
@@ -127,6 +144,7 @@ try {
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
   app.on('ready', async () => {
     const pdf_window = await createPdfWindow();
+    // const pdf_window_show = await createShowPdfWindow();
 
 
     setTimeout(async () =>{

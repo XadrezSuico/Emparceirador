@@ -1,18 +1,22 @@
 import {app, BrowserWindow, ipcMain, screen} from 'electron';
+const PDFWindow = require('electron-pdf-window')
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve --inspect=5858');
 
+let size;
+let browser_window_opts;
+
+
 
 function createWindow(): BrowserWindow {
+  size = screen.getPrimaryDisplay().workAreaSize;
 
-  const size = screen.getPrimaryDisplay().workAreaSize;
-
-  // Create the browser window.
-  win = new BrowserWindow({
+  browser_window_opts = {
     x: 0,
     y: 0,
     width: size.width,
@@ -22,15 +26,20 @@ function createWindow(): BrowserWindow {
       allowRunningInsecureContent: (serve),
       contextIsolation: false,  // false if you want to run e2e test with Spectron
     },
-  });
+  }
+
+  // Create the browser window.
+  win = new BrowserWindow(browser_window_opts);
 
   if (serve) {
+    console.log("serve: yes")
     const debug = require('electron-debug');
     debug();
 
     require('electron-reloader')(module);
     win.loadURL('http://localhost:4200');
   } else {
+    console.log("serve: no")
     // Path when running electron executable
     let pathIndex = './index.html';
 
@@ -40,6 +49,7 @@ function createWindow(): BrowserWindow {
     }
 
     const url = new URL(path.join('file:', __dirname, pathIndex));
+    console.log(url.href);
     win.loadURL(url.href);
   }
 
@@ -50,6 +60,53 @@ function createWindow(): BrowserWindow {
     // when you should delete the corresponding element.
     win = null;
   });
+
+  return win;
+}
+
+function createPdfWindow(): BrowserWindow {
+  let window_to_PDF = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+      allowRunningInsecureContent: (serve),
+      contextIsolation: false,  // false if you want to run e2e test with Spectron
+    },
+  });//to just open the browser in background
+
+
+  var options = {
+    landscape: true,
+    marginsType: 0,
+    printBackground: false,
+    printSelectionOnly: false,
+    pageSize: "A4",
+
+    marginTop: "15px",
+    marginBottom: "15px",
+    marginLeft: "15px",
+    marginRight: "15px",
+  };
+  window_to_PDF.webContents.on('did-finish-load', () => {
+    setTimeout(() => {
+      // Use default printing options
+      const pdfPath = path.join(__dirname, '__temp_reports', 'report.pdf')
+      window_to_PDF.webContents.printToPDF(options).then(data => {
+        fs.writeFile(pdfPath, data, (error) => {
+          if (error) throw error
+          console.log(`Wrote PDF successfully to ${pdfPath}`)
+        })
+      }).catch(error => {
+        console.log(`Failed to write PDF to ${pdfPath}: `, error)
+      })
+    }, 500);
+  })
+
+  return window_to_PDF;
+}
+
+function createShowPdfWindow() {
+  const win = new PDFWindow(browser_window_opts)
 
   return win;
 }
@@ -68,20 +125,27 @@ try {
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
-  app.on('ready', () => {
-    ipcMain.on('set-title', setTitle)
-    event_controller.setEvents(ipcMain)
-    tournament_controller.setEvents(ipcMain)
-    category_controller.setEvents(ipcMain)
-    player_controller.setEvents(ipcMain)
-    round_controller.setEvents(ipcMain)
-    pairing_controller.setEvents(ipcMain)
-    standing_controller.setEvents(ipcMain)
-    tiebreak_controller.setEvents(ipcMain)
+  app.on('ready', async () => {
+    const pdf_window = await createPdfWindow();
+
+
+    setTimeout(async () =>{
+      ipcMain.on('set-title', setTitle)
+      event_controller.setEvents(ipcMain)
+      tournament_controller.setEvents(ipcMain)
+      category_controller.setEvents(ipcMain)
+      player_controller.setEvents(ipcMain, pdf_window, createShowPdfWindow)
+      round_controller.setEvents(ipcMain)
+      pairing_controller.setEvents(ipcMain, pdf_window, createShowPdfWindow)
+      standing_controller.setEvents(ipcMain, pdf_window, createShowPdfWindow)
+      tiebreak_controller.setEvents(ipcMain)
 
 
 
-    setTimeout(createWindow, 400)
+      setTimeout(async () =>{
+        createWindow();
+      }, 400)
+    }, 400)
   });
 
   // Quit when all windows are closed.

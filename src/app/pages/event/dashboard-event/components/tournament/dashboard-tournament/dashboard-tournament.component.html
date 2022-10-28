@@ -4,18 +4,18 @@
       <form #form="ngForm">
         <div class="form-group">
           <label for="name">Nome:</label>
-          <input type="text" name="name" id="name" class="form-control" [(ngModel)]="tournament.name" />
+          <input type="text" name="name" id="name" class="form-control" [(ngModel)]="tournament_edit.name" />
         </div>
         <div class="form-group">
           <label for="tournament_type">Tipo de Torneio:</label>
-          <select name="tournament_type" id="tournament_type" class="form-select" [(ngModel)]="tournament.tournament_type">
+          <select name="tournament_type" id="tournament_type" class="form-select" [(ngModel)]="tournament_edit.tournament_type">
             <option value="SWISS">Sistema Suíço</option>
             <option value="SCHURING">Sistema Round-Robin/Schüring/Todos-contra-todos</option>
           </select>
         </div>
         <div class="form-group" *ngIf="tournament.tournament_type === 'SWISS'">
           <label for="rounds_number">Número de Rodadas:</label>
-          <input type="text" name="rounds_number" id="rounds_number" class="form-control" [(ngModel)]="tournament.rounds_number" />
+          <input type="text" name="rounds_number" id="rounds_number" class="form-control" [(ngModel)]="tournament_edit.rounds_number" />
         </div>
         <hr/>
         <button class="btn btn-primary" type="button" (click)="save()">Salvar</button>
@@ -48,7 +48,15 @@
     <ng-container ngbNavItem>
       <a ngbNavLink><fa-icon [icon]="players_icon"></fa-icon> Jogadores</a>
       <ng-template ngbNavContent>
-        <app-players-tournament [tournament_uuid]="tournament_uuid"></app-players-tournament>
+        <app-players-tournament
+        [tournament_uuid]="tournament_uuid"
+
+        [last_round_number]="last_round_number"
+        [selected_round_number]="selected_round_number"
+        [tournament]="tournament"
+
+        (is_requesting_emmiter)="requestingChange($event)"
+      ></app-players-tournament>
       </ng-template>
     </ng-container>
 
@@ -75,6 +83,8 @@
         <app-results-tournament
         [tournament]="tournament"
         [selected_round_number]="selected_round_number"
+
+        (is_requesting_emmiter)="requestingChange($event)"
         ></app-results-tournament>
       </ng-template>
     </ng-container>
@@ -108,6 +118,11 @@
                 <label for="rounds_number">Número de Rodadas:</label>
                 <input type="text" name="rounds_number" id="rounds_number" class="form-control"
                   [(ngModel)]="tournament_edit.rounds_number" />
+              </div>
+              <div class="form-group">
+                <label for="table_start_number">Número Inicial das Mesas:</label>
+                <input type="text" name="table_start_number" id="table_start_number" class="form-control"
+                  [(ngModel)]="tournament_edit.table_start_number" />
               </div>
               <div class="row">
                 <div class="col-md-6">

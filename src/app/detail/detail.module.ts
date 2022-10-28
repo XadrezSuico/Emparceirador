@@ -1,3 +1,6 @@
+import { ListStandingsComponent } from './../print/reports/list-standings/list-standings.component';
+import { ListPairingsComponent } from './../print/reports/list-pairings/list-pairings.component';
+import { PlayersReportComponent } from './../pages/event/dashboard-event/components/tournament/print/players-report/players-report.component';
 import { ResultsTournamentComponent } from './../pages/event/dashboard-event/components/tournament/results-tournament/results-tournament.component';
 import { PairingsTournamentComponent } from './../pages/event/dashboard-event/components/tournament/pairings-tournament/pairings-tournament.component';
 import { CategoriesTournamentComponent } from './../pages/event/dashboard-event/components/tournament/categories-tournament/categories-tournament.component';
@@ -16,6 +19,8 @@ import { SharedModule } from '../shared/shared.module';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgxMaskModule } from 'ngx-mask';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { PrintLayoutComponent } from '../print/print-layout/print-layout.component';
+import { ListPlayersComponent } from '../print/reports/list-players/list-players.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +32,14 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     PlayersTournamentComponent,
     CategoriesTournamentComponent,
     PairingsTournamentComponent,
-    ResultsTournamentComponent
+    ResultsTournamentComponent,
+
+    PlayersReportComponent,
+
+    PrintLayoutComponent,
+    ListPlayersComponent,
+    ListPairingsComponent,
+    ListStandingsComponent
   ],
   imports: [CommonModule, SharedModule, DetailRoutingModule,FontAwesomeModule,NgxMaskModule.forChild(),NgbModule]
 })

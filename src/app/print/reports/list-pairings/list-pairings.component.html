@@ -1,0 +1,26 @@
+<div>
+  <div *ngIf="tournament">
+    <h1 *ngIf="tournament.event">{{tournament.event.name}}</h1>
+    <h2>Torneio: {{tournament.name}}</h2>
+    <hr/>
+    <h2>Emparceiramentos - Rodada {{round.number}}</h2>
+    <table>
+      <thead>
+        <tr>
+          <th width="50">No.</th>
+          <th>Jogador (Brancas)</th>
+          <th width="100">Resultado</th>
+          <th>Jogador (Negras)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pairing of pairings; let i = index">
+          <td>{{(pairing.is_bye) ? "-" : pairing.number}}</td>
+          <td>{{pairing.player_a.name}} [{{getPoints(pairing.player_a)}}]</td>
+          <td>{{getPairingResult(pairing)}}</td>
+          <td>{{ ((pairing.is_bye) ? 'BYE' : pairing.player_b.name.concat(" [").concat(getPoints(pairing.player_b)).concat("]")) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

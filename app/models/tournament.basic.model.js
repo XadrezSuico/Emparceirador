@@ -23,6 +23,11 @@ const Tournaments = database.define('tournaments', {
     type: Sequelize.INTEGER,
     allowNull: true
   },
+  table_start_number: {
+    type: Sequelize.INTEGER,
+    defaultValue: 1,
+    allowNull: true
+  },
 
   ordering_sequence: {
     type: Sequelize.JSON,

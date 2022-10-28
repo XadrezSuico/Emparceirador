@@ -1,8 +1,11 @@
 <form #form="ngForm">
   <label id="category_index_selected">Categoria:</label>
-  <select name="category_index_selected" id="category_index_selected" class="form-select" [(ngModel)]="category_index_selected" (change)="onCategoryChange()">
-    <option *ngFor="let category of categories; let i = index" value="{{i}}">{{category.name}}</option>
-  </select>
+  <div class="input-group mb-3">
+    <select name="category_index_selected" id="category_index_selected" class="form-select" [(ngModel)]="category_index_selected" (change)="onCategoryChange()">
+      <option *ngFor="let category of categories; let i = index" value="{{i}}">{{category.name}}</option>
+    </select>
+    <button class="btn btn-primary" type="button" (click)="printReport()">Imprimir Relatório</button>
+  </div>
 </form>
 <table class="table table-striped">
   <thead>
@@ -10,6 +13,8 @@
       <th>Pos.</th>
       <th>Nome</th>
       <th>Categoria</th>
+      <th>Cidade</th>
+      <th>Clube</th>
       <th>Pts</th>
       <th *ngFor="let tiebreak of tiebreaks; let i = index">Des{{i+1}}</th>
     </tr>
@@ -19,7 +24,9 @@
       <td *ngIf="!(category_index_selected > 0)">{{standing.place}}</td>
       <td *ngIf="category_index_selected > 0">{{standing.category_place}}</td>
       <td>{{standing.player.name}}</td>
-      <td>{{standing.category.name}}</td>
+      <td>{{(standing.category) ? standing.category.name : "-"}}</td>
+      <td>{{(standing.player.city) ? standing.player.city.name : "-"}}</td>
+      <td>{{(standing.player.club) ? standing.player.club.name : "-"}}</td>
       <td>{{standing.points}}</td>
       <td *ngFor="let tiebreak of standing.tiebreaks">{{tiebreak.value}}</td>
     </tr>

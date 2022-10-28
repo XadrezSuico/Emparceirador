@@ -17,7 +17,7 @@ export class HomeComponent implements OnInit {
     private router: Router,
     private electronService: ElectronService
   ) {
-    this.electronService.ipcRenderer.send("set-title", "");
+    if(this.electronService) if(this.electronService.ipcRenderer) this.electronService.ipcRenderer.send("set-title", "");
   }
 
   ngOnInit(): void {

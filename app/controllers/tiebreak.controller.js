@@ -131,14 +131,14 @@ async function generateTiebreakDirectEncounter(player_standing){
 
     // If don't have other players with same points, this tiebreak doesn't work
     if (standings.length === 0) {
-      return -1;
+      return 0;
     }
 
     let points = 0;
     for (standing of standings) {
       let pairing_request = await PairingsController.hasPlayersPlayed(null,player_standing.player.uuid,standing.player.uuid);
       if (pairing_request.ok === 1) {
-        console.log(pairing_request);
+        // console.log(pairing_request);
         if (pairing_request.result) {
           if (!pairing_request.pairing.player_a_wo && !pairing_request.pairing.player_b_wo && !pairing_request.pairing.is_bye){
             if (pairing_request.pairing.player_a_uuid === player_standing.player.uuid) {
@@ -149,14 +149,14 @@ async function generateTiebreakDirectEncounter(player_standing){
           }
         } else {
           // If one of players selected not played with this player, so this tiebreak doesn't work
-          return -2;
+          return 0;
         }
       }
     }
 
     return points;
   }
-  return -3;
+  return 0;
 }
 
 async function generateTieBreakBuchholz(player_standing,better_not_count=0,worst_not_count=0){
@@ -220,21 +220,24 @@ async function generateBerger(player_standing, better_not_count = 0, worst_not_c
         let other_player_uuid = "";
         let player_result = 0;
 
-        if (player_pairing.place === "a") {
-          other_player_uuid = player_pairing.pairing.player_b_uuid;
-          if (player_pairing.pairing.have_result) {
-            player_result = player_pairing.pairing.player_a_result;
+        if (!player_pairing.pairing.player_a_wo && !player_pairing.pairing.player_b_wo && !player_pairing.pairing.is_bye) {
+          if (player_pairing.place === "a") {
+            other_player_uuid = player_pairing.pairing.player_b_uuid;
+            if (player_pairing.pairing.have_result) {
+              player_result = player_pairing.pairing.player_a_result;
+            }
+          } else {
+            other_player_uuid = player_pairing.pairing.player_a_uuid;
+            if (player_pairing.pairing.have_result) {
+              player_result = player_pairing.pairing.player_b_result;
+            }
           }
-        } else {
-          other_player_uuid = player_pairing.pairing.player_a_uuid;
-          if (player_pairing.pairing.have_result) {
-            player_result = player_pairing.pairing.player_b_result;
-          }
-        }
 
-        let other_player_standing = await StandingsController.getFromPlayerAndRound(null, player_standing.tournament.uuid, player_standing.round.uuid, other_player_uuid);
-        if (other_player_standing.ok === 1) {
-          results[results_count++] = other_player_standing.standing.points * player_result;
+          // console.log("Other UUID: ".concat(other_player_uuid))
+          let other_player_standing = await StandingsController.getFromPlayerAndRound(null, player_standing.tournament.uuid, player_standing.round.uuid, other_player_uuid);
+          if (other_player_standing.ok === 1) {
+            results[results_count++] = other_player_standing.standing.points * player_result;
+          }
         }
       }
     }

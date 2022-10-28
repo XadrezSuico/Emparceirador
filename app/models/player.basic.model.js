@@ -73,7 +73,7 @@ const Players = database.define('players', {
     allowNull: true
   },
 
-  temporary_tournament_info: {
+  rounds_out: {
     type: Sequelize.JSON,
     allowNull: true
   },

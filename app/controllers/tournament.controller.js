@@ -1,12 +1,13 @@
 const database = require('../db/db');
 const Tournaments = require('../models/tournament.model');
+const Categories = require('../models/category.model');
+const Events = require('../models/event.model');
 
 const PairingsController = require('./pairing.controller');
 
 const dateHelper = require("../helpers/date.helper");
 
 const TournamentDTO = require("../dto/tournament.dto");
-const Categories = require('../models/category.model');
 
 module.exports.setEvents = (ipcMain) => {
   database.sync();
@@ -35,8 +36,9 @@ async function create(event, event_uuid, tournament){
         name: tournament.name,
         tournament_type: tournament.tournament_type,
         rounds_number: tournament.rounds_number,
+        table_start_number: (tournament.table_start_number) ? tournament.table_start_number : 1,
         eventUuid: event_uuid,
-        ordering_sequence:tournament.ordering_sequence,
+        ordering_sequence: (tournament.ordering_sequence) ? tournament.ordering_sequence : [],
         tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
       })
       // console.log(resultadoCreate);
@@ -57,6 +59,7 @@ async function listAll() {
         name: tournament.name,
         tournament_type: tournament.tournament_type,
         rounds_number: tournament.rounds_number,
+        table_start_number: tournament.table_start_number,
         ordering_sequence: tournament.ordering_sequence,
         tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
       };
@@ -75,12 +78,18 @@ async function listFromEvent(event,event_uuid) {
       where: {
         eventUuid: event_uuid
       },
-      include: {
-        model: Categories,
-        as: "categories"
-      }
+      include: [
+        {
+          model: Categories,
+          as: "categories"
+        },
+        {
+          model: Events,
+          as: "event"
+        },
+      ]
     });
-    console.log(tournaments);
+    // console.log(tournaments);
     return { ok: 1, error: 0, tournaments: await TournamentDTO.convertToExportList(tournaments)};
   } catch (error) {
       console.log(error);
@@ -94,10 +103,15 @@ async function get(e,uuid) {
       where:{
         uuid:uuid
       },
-      include:{
-        model:Categories,
-        as:"categories"
-      }
+      include: [{
+          model: Categories,
+          as: "categories"
+        },
+        {
+          model: Events,
+          as: "event"
+        }
+      ]
     });
 
     if(tournament){
@@ -116,6 +130,7 @@ async function update(e,uuid,tournament){
         name: tournament.name,
         tournament_type: tournament.tournament_type,
         rounds_number: tournament.rounds_number,
+        table_start_number: (tournament.table_start_number) ? tournament.table_start_number : 1,
         ordering_sequence: tournament.ordering_sequence,
         tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
       },{

@@ -1,4 +1,6 @@
 const database = require('../db/db');
+const fs = require('fs');
+const path = require('path');
 const Standings = require('../models/standing.model');
 
 const dateHelper = require("../helpers/date.helper");
@@ -11,9 +13,16 @@ const Tournaments = require('../models/tournament.model');
 const Categories = require('../models/category.model');
 
 const RoundsController = require("./round.controller");
+const TournamentsController = require("./tournament.controller");
 
-module.exports.setEvents = (ipcMain) => {
+let window_pdf;
+let pdf_window_func;
+
+module.exports.setEvents = (ipcMain, pdf_window, __pdf_window_func) => {
   database.sync();
+
+  window_pdf = pdf_window;
+  pdf_window_func = __pdf_window_func;
 
   ipcMain.handle('controller.standings.listAll', listAll)
   ipcMain.handle('controller.standings.listFromPlayer', listFromPlayer)
@@ -24,6 +33,8 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.standings.listFromCategoryAndRoundNumber', listFromCategoryAndRoundNumber)
   ipcMain.handle('controller.standings.get', get)
   ipcMain.handle('controller.standings.removeByRound', removeByRound)
+
+  ipcMain.handle('controller.standings.generateReport', generateReport)
 }
 
 module.exports.create = create;
@@ -201,7 +212,7 @@ async function listFromRoundNumber(e, tournament_uuid, round_number) {
     if(round_request.ok === 1){
       let round_uuid = round_request.round.uuid;
 
-      return  await listFromRound(null,tournament_uuid,round_uuid);
+      return await listFromRound(null,tournament_uuid,round_uuid);
     }
 
   } catch (error) {
@@ -369,4 +380,48 @@ async function removeByTournament(e, tournament_uuid) {
   } catch (error) {
     console.log(error);
   }
+}
+
+async function generateReport(e, tournament_uuid, round_number, category_uuid) {
+  try {
+    let tournament_request = await TournamentsController.get(null, tournament_uuid);
+    if (tournament_request.ok === 1) {
+      let round_request = await RoundsController.getByNumber(null, tournament_uuid, round_number);
+      if (round_request.ok === 1) {
+        let round = round_request.round;
+
+        // Path when running electron executable
+        let pathIndex = '../../index.html';
+
+        if (fs.existsSync(path.join(__dirname, '../../dist/index.html'))) {
+          // Path when running electron in local folder
+          pathIndex = '../../dist/index.html';
+        }
+
+        const url = new URL(path.join('file:', __dirname, pathIndex));
+
+        console.log(url);
+        console.log(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/standings/").concat(round.uuid).concat("/").concat(category_uuid)));
+
+        await window_pdf.loadURL(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/standings/").concat(round.uuid).concat("/").concat(category_uuid))); //give the file link you want to display
+
+
+        setTimeout(() => {
+          let window_show_pdf = pdf_window_func();
+
+          const pdf_url = new URL(path.join('file:', __dirname, "../../app/__temp_reports/report.pdf"));
+          window_show_pdf.loadURL(pdf_url.href)
+
+        }, 1000);
+        return { ok: 1, error: 0 };
+      }else{
+        return round_request;
+      }
+    }else{
+      return tournament_request;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 }

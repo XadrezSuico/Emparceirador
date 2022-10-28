@@ -1,5 +1,5 @@
 import { Tournament } from './../../../../../../_interfaces/tournament';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Observable, Subscription, throwIfEmpty } from 'rxjs';
 import { ElectronService } from '../../../../../../core/services';
@@ -7,6 +7,7 @@ import { Pairing } from '../../../../../../_interfaces/pairing';
 
 import Swal from 'sweetalert2';
 import { TournamentType } from '../../../../../../_interfaces/_enums/_tournament_type';
+import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-pairings-tournament',
@@ -15,6 +16,8 @@ import { TournamentType } from '../../../../../../_interfaces/_enums/_tournament
 })
 export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges {
 
+  faCheck = faCheck;
+  faTimes = faTimes;
   @Input()
   tournament_uuid;
 
@@ -26,6 +29,8 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
 
   @Output()
   is_requesting_emmiter = new EventEmitter<boolean>();
+
+
 
   constructor(
     private electronService: ElectronService,
@@ -350,7 +355,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
     }
   }
 
-  setEmptyResult(){
+  async setEmptyResult(){
     if(this.row_selected >= 0 && this.row_selected < this.pairings.length){
       if(!this.pairings[this.row_selected].is_bye){
         this.pairings[this.row_selected].player_a_result = null;
@@ -359,12 +364,12 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.pairings[this.row_selected].player_b_wo = null;
         this.pairings[this.row_selected].have_result = false;
 
-        this.updateResult(this.pairings[this.row_selected]);
+        await this.updateResult(this.pairings[this.row_selected]);
       }
     }
   }
 
-  setResult(player_a,player_b){
+  async setResult(player_a,player_b){
     if(this.row_selected >= 0 && this.row_selected < this.pairings.length){
       if(!this.pairings[this.row_selected].is_bye){
         this.pairings[this.row_selected].player_a_result = player_a;
@@ -373,15 +378,15 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.pairings[this.row_selected].player_b_wo = false;
         this.pairings[this.row_selected].have_result = true;
 
-        this.updateResult(this.pairings[this.row_selected]);
-
         if(this.row_selected + 1 < this.pairings.length){
-          this.row_selected++;
+          await this.updateResult(this.pairings[this.row_selected++]);
+        }else{
+          await this.updateResult(this.pairings[this.row_selected]);
         }
       }
     }
   }
-  setResultWO(player_a,player_b){
+  async setResultWO(player_a,player_b){
     if(this.row_selected >= 0 && this.row_selected < this.pairings.length){
       if(!this.pairings[this.row_selected].is_bye){
         this.pairings[this.row_selected].player_a_result = player_a;
@@ -390,21 +395,30 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.pairings[this.row_selected].player_b_wo = (player_b) ? false : true;
         this.pairings[this.row_selected].have_result = true;
 
-        this.updateResult(this.pairings[this.row_selected]);
-
         if(this.row_selected + 1 < this.pairings.length){
-          this.row_selected++;
+          await this.updateResult(this.pairings[this.row_selected++]);
+        }else{
+          await this.updateResult(this.pairings[this.row_selected]);
         }
+
       }
     }
   }
 
   async updateResult(pairing){
-    let return_update_result = await this.electronService.ipcRenderer.invoke("controller.pairings.update", pairing);
+    let return_update_result = await this.electronService.ipcRenderer.invoke("controller.pairings.update", pairing, true);
     if(return_update_result.ok === 1){
       this.statusSelectedRound();
       this.result_change_emitter.emit();
-      return {ok:1,error:0}
+
+      if(this.selected_round_number < this.last_round_number){
+        let return_update_standing = await this.electronService.ipcRenderer.invoke("controller.rounds.updateStandingsFromTournament", this.tournament.uuid, this.selected_round_number);
+        if(return_update_standing.ok === 1){
+          return {ok:1,error:0};
+        }
+      }else{
+        return {ok:1,error:0};
+      }
     }else{
       Swal.fire({
           title: 'Erro!',
@@ -429,5 +443,96 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
       return 0;
     }
     return -1;
+  }
+
+  pointsButtonsEnabled(){
+    if(this.row_selected >= 0){
+      if(!this.pairings[this.row_selected].is_bye){
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  @HostListener('document:keypress', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if(this.pointsButtonsEnabled()){
+      switch(event.key){
+        case "0":
+          this.setResult(0,0);
+          return false;
+          break;
+        case "1":
+          this.setResult(1,0);
+          return false;
+          break;
+        case "2":
+          this.setResult(0.5,0.5);
+          return false;
+          break;
+        case "3":
+          this.setResult(0,1);
+          return false;
+          break;
+        case "4":
+          this.setResultWO(1,0);
+          return false;
+          break;
+        case "5":
+          this.setResultWO(0,1);
+          return false;
+          break;
+        case "6":
+          this.setResultWO(0,0);
+          return false;
+          break;
+        case "7":
+          this.setResult(0,0);
+          return false;
+          break;
+      }
+    }
+
+
+    return true;
+  }
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardDownEvent(event: KeyboardEvent) {
+    switch(event.key){
+      case "ArrowUp":
+        if(this.row_selected > 0){
+          this.row_selected--;
+          return false;
+        }
+        break;
+      case "ArrowDown":
+        if(this.row_selected + 1 < this.pairings.length){
+          this.row_selected++;
+          return false;
+        }
+        break;
+    }
+    return true;
+  }
+
+
+  /*
+   *
+   *
+   * PRINT
+   *
+   *
+   */
+
+
+  async printReport() {
+    this.is_requesting_emmiter.emit(true);
+
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.pairings.generateReport", this.tournament_uuid, this.selected_round_number);
+      if(retorno.ok){
+    }
+
+    this.is_requesting_emmiter.emit(false);
   }
 }

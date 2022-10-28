@@ -28,4 +28,5 @@ export interface Player{
   fide_rating?:number;
 
   standings?:Array<Standing>;
+  rounds_out?:Array<any>;
 }

@@ -1,7 +1,10 @@
 module.exports.convertToSql = (date_from) => {
-  parts = date_from.split("/");
+  if (date_from){
+    parts = date_from.split("/");
 
-  return parts[2].concat("-").concat(parts[1]).concat("-").concat(parts[0]);
+    return parts[2].concat("-").concat(parts[1]).concat("-").concat(parts[0]);
+  }
+  return null;
 }
 module.exports.convertToBr = (date_from) => {
   if(date_from !== 'Invalid date'){

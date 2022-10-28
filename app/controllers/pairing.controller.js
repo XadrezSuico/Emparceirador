@@ -1,8 +1,11 @@
 const database = require('../db/db');
+const fs = require('fs');
+const path = require('path');
 const Pairings = require('../models/pairing.model');
 
 const PlayersController = require('./player.controller');
 const RoundsController = require('./round.controller');
+const TournamentsController = require('./tournament.controller');
 
 const PlayerDTO = require('../dto/player.dto');
 const PairingDTO = require('../dto/pairing.dto');
@@ -15,8 +18,14 @@ const Players = require('../models/player.model');
 const { Op } = require('sequelize');
 const Standings = require('../models/standing.model');
 
-module.exports.setEvents = (ipcMain) => {
+let window_pdf;
+let pdf_window_func;
+
+module.exports.setEvents = (ipcMain, pdf_window, __pdf_window_func) => {
   database.sync();
+
+  window_pdf = pdf_window;
+  pdf_window_func = __pdf_window_func;
 
   ipcMain.handle('controller.pairings.listAll', listAll)
   ipcMain.handle('controller.pairings.listByRound', listFromRound)
@@ -26,6 +35,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.pairings.remove', remove)
   ipcMain.handle('controller.pairings.removeByRound', removeByRound)
   ipcMain.handle('controller.pairings.isAllPairingsWithResult', isAllPairingsWithResult)
+  ipcMain.handle('controller.pairings.generateReport', generateReport)
 }
 
 module.exports.listAll = listAll;
@@ -57,16 +67,30 @@ async function create(event, round_uuid, pairing, tournament = null){
       }else{
         if(tournament){
           if (tournament.tournament_type === "SWISS") {
-            resultadoCreate = await Pairings.create({
-              number: pairing.number,
-              player_a_uuid: pairing.player_a_uuid,
-              player_a_result: 1,
-              player_b_result: 0,
-              is_bye: true,
-              have_result: true,
+            if (pairing.have_result) {
+              console.log("have_result");
+              resultadoCreate = await Pairings.create({
+                number: pairing.number,
+                player_a_uuid: pairing.player_a_uuid,
+                player_a_result: pairing.player_a_result,
+                player_b_result: 0,
+                have_result: true,
+                is_bye: true,
 
-              roundUuid: round_uuid,
-            })
+                roundUuid: round_uuid,
+              })
+            }else{
+              resultadoCreate = await Pairings.create({
+                number: pairing.number,
+                player_a_uuid: pairing.player_a_uuid,
+                player_a_result: 1,
+                player_b_result: 0,
+                is_bye: true,
+                have_result: true,
+
+                roundUuid: round_uuid,
+              })
+            }
           }else{
             resultadoCreate = await Pairings.create({
               number: pairing.number,
@@ -79,17 +103,31 @@ async function create(event, round_uuid, pairing, tournament = null){
               roundUuid: round_uuid,
             })
           }
-        }else{
-          resultadoCreate = await Pairings.create({
-            number: pairing.number,
-            player_a_uuid: pairing.player_a_uuid,
-            player_a_result: 1,
-            player_b_result: 0,
-            is_bye: true,
-            have_result: true,
+        } else {
+          if (pairing.have_result) {
+            console.log("have_result");
+            resultadoCreate = await Pairings.create({
+              number: pairing.number,
+              player_a_uuid: pairing.player_a_uuid,
+              player_a_result: pairing.player_a_result,
+              player_b_result: 0,
+              have_result: true,
+              is_bye: true,
 
-            roundUuid: round_uuid,
-          })
+              roundUuid: round_uuid,
+            })
+          } else {
+            resultadoCreate = await Pairings.create({
+              number: pairing.number,
+              player_a_uuid: pairing.player_a_uuid,
+              player_a_result: 1,
+              player_b_result: 0,
+              is_bye: true,
+              have_result: true,
+
+              roundUuid: round_uuid,
+            })
+          }
         }
       }
       // console.log(resultadoCreate);
@@ -101,26 +139,21 @@ async function create(event, round_uuid, pairing, tournament = null){
 
 async function listAll() {
   try {
-    let pairings = await Pairings.findAll();
-    let pairings_return = [];
-    let i = 0;
-    for(let pair of pairings){
-      let pairing_return = {
-        uuid: pair.uuid,
-        number: pairing.number,
-        player_a_uuid: pair.player_a_uuid,
-        player_a_result: pair.player_a_result,
-        player_a_wo: pair.player_a_wo,
-        player_b_uuid: pair.player_b_uuid,
-        player_b_result: pair.player_b_result,
-        player_b_wo: pair.player_b_wo,
-        have_result: pairing.have_result,
-        is_bye: pair.is_bye,
-      };
-
-      pairings_return[i++] = pairing_return;
-    }
-    return {ok:1,error:0,pairings:pairings_return};
+    let pairings = await Pairings.findAll({
+      include:[
+        {
+          model: Rounds,
+          as: 'round',
+          include:[
+            {
+              model: Tournaments,
+              as:'tournament'
+            }
+          ]
+        }
+      ]
+    });
+    return {ok:1,error:0,pairings:await PairingDTO.convertToExportList(pairings)};
   } catch (error) {
       console.log(error);
   }
@@ -141,7 +174,7 @@ async function listFromRound(event,round_uuid) {
           order:[
             ["number","ASC"]
           ],
-          include:[
+          include: [
             {
               model: Players,
               as: 'player_a',
@@ -171,35 +204,8 @@ async function listFromRound(event,round_uuid) {
           ]
         });
 
-
-        let pairings_return = [];
-        let i = 0;
-
-        // console.log("Pairings by Round")
-        // console.log(pairings)
-
-        for(let pairing of pairings){
-
-          // console.log(pairing);
-
-          let pairing_return = {
-            uuid: pairing.uuid,
-            number: pairing.number,
-            player_a: await PlayerDTO.convertToExport(pairing.player_a),
-            player_a_uuid: pairing.player_a_uuid,
-            player_a_result: pairing.player_a_result,
-            player_a_wo: pairing.player_a_wo,
-            player_b: await PlayerDTO.convertToExport(pairing.player_b),
-            player_b_uuid: pairing.player_b_uuid,
-            player_b_result: pairing.player_b_result,
-            player_b_wo: pairing.player_b_wo,
-            have_result: pairing.have_result,
-            is_bye: pairing.is_bye,
-          };
-
-          pairings_return[i++] = pairing_return;
-        }
-        return {ok:1,error:0,pairings:pairings_return};
+        // return { ok: 1, error: 0, pairings: [] };
+        return { ok: 1, error: 0, pairings: await PairingDTO.convertToExportList(pairings,round_request.round.tournament.table_start_number)};
       }
     // }
   } catch (error) {
@@ -213,29 +219,34 @@ async function get(e,uuid) {
   try {
     let pairing = await Pairings.findByPk(uuid);
 
-    let pairing_return = {
-        uuid: pairing.uuid,
-        number: pairing.number,
-        player_a_uuid: pairing.player_a_uuid,
-        player_a_result: pairing.player_a_result,
-        player_a_wo: pairing.player_a_wo,
-        player_b_uuid: pairing.player_b_uuid,
-        player_b_result: pairing.player_b_result,
-        player_b_wo: pairing.player_b_wo,
-        have_result: pairing.have_result,
-        is_bye: pairing.is_bye,
-        round_uuid: pairing.roundUuid,
-    };
+    if(pairing){
+      return { ok: 1, error: 0, pairing: PairingDTO.convertToExport(pairing) };
+    }
 
-    return {ok:1,error:0,pairing:pairing_return};
   } catch (error) {
       console.log(error);
   }
 }
 
-async function update(e,pairing){
+async function update(e,pairing,has_result = false){
   try {
-      let resultado = await Pairings.update({
+    // console.log(pairing);
+    let resultado;
+    if (has_result){
+      resultado = await Pairings.update({
+        player_a_result: pairing.player_a_result,
+        player_a_wo: pairing.player_a_wo,
+        player_b_result: pairing.player_b_result,
+        player_b_wo: pairing.player_b_wo,
+        have_result: pairing.have_result,
+        is_bye: pairing.is_bye,
+      }, {
+        where: {
+          uuid: pairing.uuid
+        }
+      })
+    }else{
+      resultado = await Pairings.update({
         number: pairing.number,
         player_a_uuid: pairing.player_a_uuid,
         player_a_result: pairing.player_a_result,
@@ -250,16 +261,14 @@ async function update(e,pairing){
           uuid:pairing.uuid
         }
       })
-
-      let pairing_request = await get(null,pairing.uuid);
-      if (pairing_request.ok === 1) {
-        await RoundsController.updateStandings(null,pairing_request.pairing.round_uuid);
-      }
-      // console.log(resultado);
-      return {ok:1,error:0};
-    } catch (error) {
-        console.log(error);
     }
+    // await RoundsController.updateStandings(null, pairing.round_uuid);
+    return { ok: 1, error: 0 };
+
+    // console.log(resultado);
+  } catch (error) {
+    console.log(error);
+  }
 
 }
 
@@ -353,7 +362,7 @@ async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_
 
         let player_pairing = {
           "place":"a",
-          "pairing": pairing
+          "pairing": await PairingDTO.convertToExport(pairing)
         };
         // console.log("Player Pairing A(".concat(pairing.player_a.uuid).concat("): ").concat(String(pairing.player_a_result)));
 
@@ -387,22 +396,19 @@ async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_
         points = points + pairing.player_b_result;
 
         let player_pairing = {
-          "place":"b",
-          "pairing": pairing
+          "place": "b",
+          "pairing": await PairingDTO.convertToExport(pairing)
         };
-        // console.log("Player Pairing B(".concat(pairing.player_b.uuid).concat("): ").concat(String(pairing.player_b_result)));
 
         player_pairings[pairing.round.number] = player_pairing;
       }
     }
 
-    // console.log("Pairings Temporary Points(".concat(player_uuid).concat("): ").concat(String(points)));
-    // console.log(player_pairings);
-
     return {ok:1,error:0,points:points,player_pairings:player_pairings};
   } catch (error) {
       console.log(error);
   }
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 }
 
 async function isAllPairingsWithResult(e,round_uuid){
@@ -422,9 +428,9 @@ async function isAllPairingsWithResult(e,round_uuid){
 
 
 async function hasPlayersPlayed(e, player_a_uuid,player_b_uuid) {
-  console.log("hasPlayersPlayed");
-  console.log("aUuid: ".concat(player_a_uuid));
-  console.log("bUuid: ".concat(player_b_uuid));
+  // console.log("hasPlayersPlayed");
+  // console.log("aUuid: ".concat(player_a_uuid));
+  // console.log("bUuid: ".concat(player_b_uuid));
   try {
     let pairing = await Pairings.findOne({
       where:{
@@ -449,4 +455,43 @@ async function hasPlayersPlayed(e, player_a_uuid,player_b_uuid) {
   } catch (error) {
     console.log(error);
   }
+}
+
+async function generateReport(e, tournament_uuid, round_number) {
+  try {
+    let tournament_request = await TournamentsController.get(null, tournament_uuid);
+    if (tournament_request.ok === 1) {
+      let round_request = await RoundsController.getByNumber(null, tournament_uuid, round_number);
+      if (round_request.ok === 1) {
+        let round = round_request.round;
+
+        // Path when running electron executable
+        let pathIndex = '../../index.html';
+
+        if (fs.existsSync(path.join(__dirname, '../../dist/index.html'))) {
+          // Path when running electron in local folder
+          pathIndex = '../../dist/index.html';
+        }
+
+        const url = new URL(path.join('file:', __dirname, pathIndex));
+
+        console.log(url);
+        console.log(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/pairings/").concat(round.uuid)));
+
+        await window_pdf.loadURL(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/pairings/").concat(round.uuid))); //give the file link you want to display
+
+        setTimeout(() => {
+          let window_show_pdf = pdf_window_func();
+
+          const pdf_url = new URL(path.join('file:', __dirname, "../../app/__temp_reports/report.pdf"));
+          window_show_pdf.loadURL(pdf_url.href)
+
+        }, 1000);
+        return { ok: 1, error: 0 };
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 }

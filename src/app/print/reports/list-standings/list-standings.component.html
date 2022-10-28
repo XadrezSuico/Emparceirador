@@ -4,7 +4,9 @@
     <h2>Torneio: {{tournament.name}}</h2>
     <h2 *ngIf="category">Categoria: {{category.name}}</h2>
     <hr />
-    <h2>Emparceiramentos - Rodada {{round.number}}</h2>
+    <h2 *ngIf="tournament.tournament_type === 'SCHURING'">Resultados - Até a Rodada {{round.number}}</h2>
+    <h2 *ngIf="tournament.tournament_type === 'SWISS' && round.number < tournament.rounds_number">Resultados - Até a Rodada {{round.number}}</h2>
+    <h2 *ngIf="tournament.tournament_type === 'SWISS' && round.number === tournament.rounds_number">Resultados - Classificação Final</h2>
     <table>
       <thead>
         <tr>

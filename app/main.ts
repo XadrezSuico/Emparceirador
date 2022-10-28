@@ -1,4 +1,5 @@
 import {app, BrowserWindow, ipcMain, screen} from 'electron';
+const PDFWindow = require('electron-pdf-window')
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -7,13 +8,15 @@ let win: BrowserWindow = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve --inspect=5858');
 
+let size;
+let browser_window_opts;
+
+
 
 function createWindow(): BrowserWindow {
+  size = screen.getPrimaryDisplay().workAreaSize;
 
-  const size = screen.getPrimaryDisplay().workAreaSize;
-
-  // Create the browser window.
-  win = new BrowserWindow({
+  browser_window_opts = {
     x: 0,
     y: 0,
     width: size.width,
@@ -23,7 +26,10 @@ function createWindow(): BrowserWindow {
       allowRunningInsecureContent: (serve),
       contextIsolation: false,  // false if you want to run e2e test with Spectron
     },
-  });
+  }
+
+  // Create the browser window.
+  win = new BrowserWindow(browser_window_opts);
 
   if (serve) {
     console.log("serve: yes")
@@ -75,6 +81,11 @@ function createPdfWindow(): BrowserWindow {
     printBackground: false,
     printSelectionOnly: false,
     pageSize: "A4",
+
+    marginTop: "15px",
+    marginBottom: "15px",
+    marginLeft: "15px",
+    marginRight: "15px",
   };
   window_to_PDF.webContents.on('did-finish-load', () => {
     setTimeout(() => {
@@ -92,6 +103,12 @@ function createPdfWindow(): BrowserWindow {
   })
 
   return window_to_PDF;
+}
+
+function createShowPdfWindow() {
+  const win = new PDFWindow(browser_window_opts)
+
+  return win;
 }
 
 const event_controller = require("./controllers/event.controller")
@@ -117,10 +134,10 @@ try {
       event_controller.setEvents(ipcMain)
       tournament_controller.setEvents(ipcMain)
       category_controller.setEvents(ipcMain)
-      player_controller.setEvents(ipcMain, pdf_window)
+      player_controller.setEvents(ipcMain, pdf_window, createShowPdfWindow)
       round_controller.setEvents(ipcMain)
-      pairing_controller.setEvents(ipcMain, pdf_window)
-      standing_controller.setEvents(ipcMain, pdf_window)
+      pairing_controller.setEvents(ipcMain, pdf_window, createShowPdfWindow)
+      standing_controller.setEvents(ipcMain, pdf_window, createShowPdfWindow)
       tiebreak_controller.setEvents(ipcMain)
 
 

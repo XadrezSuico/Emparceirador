@@ -9,6 +9,7 @@
   "main": "main.js",
   "private": true,
   "dependencies": {
+    "electron-pdf-window": "^1.0.12",
     "robin-js": "^1.0.5",
     "sequelize": "^6.25.2",
     "sqlite3": "^5.1.2"

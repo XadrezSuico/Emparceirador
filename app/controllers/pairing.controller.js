@@ -19,11 +19,13 @@ const { Op } = require('sequelize');
 const Standings = require('../models/standing.model');
 
 let window_pdf;
+let pdf_window_func;
 
-module.exports.setEvents = (ipcMain, pdf_window) => {
+module.exports.setEvents = (ipcMain, pdf_window, __pdf_window_func) => {
   database.sync();
 
   window_pdf = pdf_window;
+  pdf_window_func = __pdf_window_func;
 
   ipcMain.handle('controller.pairings.listAll', listAll)
   ipcMain.handle('controller.pairings.listByRound', listFromRound)
@@ -478,10 +480,18 @@ async function generateReport(e, tournament_uuid, round_number) {
 
         await window_pdf.loadURL(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/pairings/").concat(round.uuid))); //give the file link you want to display
 
+        setTimeout(() => {
+          let window_show_pdf = pdf_window_func();
+
+          const pdf_url = new URL(path.join('file:', __dirname, "../../app/__temp_reports/report.pdf"));
+          window_show_pdf.loadURL(pdf_url.href)
+
+        }, 1000);
         return { ok: 1, error: 0 };
       }
     }
   } catch (error) {
     console.log(error);
   }
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 }

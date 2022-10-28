@@ -16,11 +16,13 @@ const RoundsController = require("./round.controller");
 const TournamentsController = require("./tournament.controller");
 
 let window_pdf;
+let pdf_window_func;
 
-module.exports.setEvents = (ipcMain, pdf_window) => {
+module.exports.setEvents = (ipcMain, pdf_window, __pdf_window_func) => {
   database.sync();
 
   window_pdf = pdf_window;
+  pdf_window_func = __pdf_window_func;
 
   ipcMain.handle('controller.standings.listAll', listAll)
   ipcMain.handle('controller.standings.listFromPlayer', listFromPlayer)
@@ -403,6 +405,14 @@ async function generateReport(e, tournament_uuid, round_number, category_uuid) {
 
         await window_pdf.loadURL(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/standings/").concat(round.uuid).concat("/").concat(category_uuid))); //give the file link you want to display
 
+
+        setTimeout(() => {
+          let window_show_pdf = pdf_window_func();
+
+          const pdf_url = new URL(path.join('file:', __dirname, "../../app/__temp_reports/report.pdf"));
+          window_show_pdf.loadURL(pdf_url.href)
+
+        }, 1000);
         return { ok: 1, error: 0 };
       }else{
         return round_request;

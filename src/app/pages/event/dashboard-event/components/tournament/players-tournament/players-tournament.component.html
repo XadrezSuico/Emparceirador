@@ -128,7 +128,7 @@
               [disabled]="last_round_number >= i+1"
               *ngIf="!playerRoundEnabled(i+1)">
 
-              {{i+1}}
+              <fa-icon [icon]="icon_x"></fa-icon> {{i+1}}
 
             </button>
             <button type="button"
@@ -137,31 +137,33 @@
               [disabled]="last_round_number >= i+1"
               *ngIf="playerRoundEnabled(i+1)">
 
-              {{i+1}}
+              <fa-icon [icon]="icon_check"></fa-icon> {{i+1}}
 
             </button>
-            <div class="btn-group" role="group" aria-label="Basic example">
-              <button type="button" class="btn btn-success" (click)="changePlayerRoundPoints(i+1,0)" [disabled]="last_round_number >= i+1"
-                *ngIf="!playerRoundEnabled(i+1) && !playerRoundPoints(i+1)">
+            <span *ngIf="!playerRoundEnabled(i+1)">Pontos Bye: </span>
+            <div class="btn-group" role="group" aria-label="Basic example" *ngIf="!playerRoundEnabled(i+1)">
+              <button type="button" class="btn btn-success" disabled="disabled"
+              [disabled]="last_round_number >= i+1"   *ngIf="!playerRoundPoints(i+1)">
                 0 pts
               </button>
-              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,0)" [disabled]="last_round_number >= i+1"
-                *ngIf="!playerRoundEnabled(i+1) && playerRoundPoints(i+1)">
+              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,0)"
+              [disabled]="last_round_number >= i+1"   *ngIf="playerRoundPoints(i+1)">
                 0 pts
               </button>
-              <button type="button" class="btn btn-success" (click)="changePlayerRoundPoints(i+1,0.5)" [disabled]="last_round_number >= i+1"
-                *ngIf="!playerRoundEnabled(i+1) && playerRoundPoints(i+1) === 0.5">
+              <button type="button" class="btn btn-success" disabled="disabled"
+              [disabled]="last_round_number >= i+1"   *ngIf="playerRoundPoints(i+1) === 0.5">
                 0.5 pts
               </button>
-              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,0.5)" [disabled]="last_round_number >= i+1"
-                *ngIf="!playerRoundEnabled(i+1) && !(playerRoundPoints(i+1) === 0.5)">
+              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,0.5)"
+              [disabled]="last_round_number >= i+1"   *ngIf="!(playerRoundPoints(i+1) === 0.5)">
                 0.5 pts
-              </button><button type="button" class="btn btn-success" (click)="changePlayerRoundPoints(i+1,1)"
-                [disabled]="last_round_number >= i+1" *ngIf="!playerRoundEnabled(i+1) && playerRoundPoints(i+1) === 1">
+              </button>
+              <button type="button" class="btn btn-success" disabled="disabled"
+                [disabled]="last_round_number >= i+1" *ngIf="playerRoundPoints(i+1) === 1">
                 1 pts
               </button>
               <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,1)"
-                [disabled]="last_round_number >= i+1" *ngIf="!playerRoundEnabled(i+1) && !(playerRoundPoints(i+1) === 1)">
+                [disabled]="last_round_number >= i+1" *ngIf="!(playerRoundPoints(i+1) === 1)">
                 1 pts
               </button>
             </div>

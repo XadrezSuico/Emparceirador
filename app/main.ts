@@ -119,8 +119,8 @@ try {
       category_controller.setEvents(ipcMain)
       player_controller.setEvents(ipcMain, pdf_window)
       round_controller.setEvents(ipcMain)
-      pairing_controller.setEvents(ipcMain)
-      standing_controller.setEvents(ipcMain)
+      pairing_controller.setEvents(ipcMain, pdf_window)
+      standing_controller.setEvents(ipcMain, pdf_window)
       tiebreak_controller.setEvents(ipcMain)
 
 

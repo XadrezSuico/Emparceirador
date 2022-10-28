@@ -7,6 +7,7 @@ import { Player } from '../../../../../../_interfaces/player';
 
 import Swal from 'sweetalert2';
 import {jsPDF} from 'jspdf';
+import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-players-tournament',
@@ -14,6 +15,9 @@ import {jsPDF} from 'jspdf';
   styleUrls: ['./players-tournament.component.scss']
 })
 export class PlayersTournamentComponent implements OnInit {
+
+  icon_check = faCheck;
+  icon_x = faTimes;
 
   @Input()
   tournament_uuid;

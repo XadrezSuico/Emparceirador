@@ -1,8 +1,11 @@
 const database = require('../db/db');
+const fs = require('fs');
+const path = require('path');
 const Pairings = require('../models/pairing.model');
 
 const PlayersController = require('./player.controller');
 const RoundsController = require('./round.controller');
+const TournamentsController = require('./tournament.controller');
 
 const PlayerDTO = require('../dto/player.dto');
 const PairingDTO = require('../dto/pairing.dto');
@@ -15,8 +18,12 @@ const Players = require('../models/player.model');
 const { Op } = require('sequelize');
 const Standings = require('../models/standing.model');
 
-module.exports.setEvents = (ipcMain) => {
+let window_pdf;
+
+module.exports.setEvents = (ipcMain, pdf_window) => {
   database.sync();
+
+  window_pdf = pdf_window;
 
   ipcMain.handle('controller.pairings.listAll', listAll)
   ipcMain.handle('controller.pairings.listByRound', listFromRound)
@@ -26,6 +33,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.pairings.remove', remove)
   ipcMain.handle('controller.pairings.removeByRound', removeByRound)
   ipcMain.handle('controller.pairings.isAllPairingsWithResult', isAllPairingsWithResult)
+  ipcMain.handle('controller.pairings.generateReport', generateReport)
 }
 
 module.exports.listAll = listAll;
@@ -442,6 +450,37 @@ async function hasPlayersPlayed(e, player_a_uuid,player_b_uuid) {
     }
 
     return { ok: 1, error: 0, result: false };
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function generateReport(e, tournament_uuid, round_number) {
+  try {
+    let tournament_request = await TournamentsController.get(null, tournament_uuid);
+    if (tournament_request.ok === 1) {
+      let round_request = await RoundsController.getByNumber(null, tournament_uuid, round_number);
+      if (round_request.ok === 1) {
+        let round = round_request.round;
+
+        // Path when running electron executable
+        let pathIndex = '../../index.html';
+
+        if (fs.existsSync(path.join(__dirname, '../../dist/index.html'))) {
+          // Path when running electron in local folder
+          pathIndex = '../../dist/index.html';
+        }
+
+        const url = new URL(path.join('file:', __dirname, pathIndex));
+
+        console.log(url);
+        console.log(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/pairings/").concat(round.uuid)));
+
+        await window_pdf.loadURL(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/pairings/").concat(round.uuid))); //give the file link you want to display
+
+        return { ok: 1, error: 0 };
+      }
+    }
   } catch (error) {
     console.log(error);
   }

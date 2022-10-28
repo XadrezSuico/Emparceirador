@@ -1,3 +1,5 @@
+import { ListStandingsComponent } from './../print/reports/list-standings/list-standings.component';
+import { ListPairingsComponent } from './../print/reports/list-pairings/list-pairings.component';
 import { PlayersReportComponent } from './../pages/event/dashboard-event/components/tournament/print/players-report/players-report.component';
 import { ResultsTournamentComponent } from './../pages/event/dashboard-event/components/tournament/results-tournament/results-tournament.component';
 import { PairingsTournamentComponent } from './../pages/event/dashboard-event/components/tournament/pairings-tournament/pairings-tournament.component';
@@ -35,7 +37,9 @@ import { ListPlayersComponent } from '../print/reports/list-players/list-players
     PlayersReportComponent,
 
     PrintLayoutComponent,
-    ListPlayersComponent
+    ListPlayersComponent,
+    ListPairingsComponent,
+    ListStandingsComponent
   ],
   imports: [CommonModule, SharedModule, DetailRoutingModule,FontAwesomeModule,NgxMaskModule.forChild(),NgbModule]
 })

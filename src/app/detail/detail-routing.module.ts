@@ -1,3 +1,5 @@
+import { ListStandingsComponent } from './../print/reports/list-standings/list-standings.component';
+import { ListPairingsComponent } from './../print/reports/list-pairings/list-pairings.component';
 import { DashboardEventComponent } from './../pages/event/dashboard-event/dashboard-event.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -17,7 +19,9 @@ const routes: Routes = [
       {
         path: 'tournament/:tournament_uuid',
         children: [
-          { path: 'players', component: ListPlayersComponent }
+          { path: 'players', component: ListPlayersComponent },
+          { path: 'pairings/:round_uuid', component: ListPairingsComponent },
+          { path: 'standings/:round_uuid/:category_uuid', component: ListStandingsComponent },
         ]
       }
     ]

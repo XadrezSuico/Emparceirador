@@ -130,4 +130,27 @@ export class ResultsTournamentComponent implements OnInit, OnChanges {
     }
   }
 
+
+  /*
+   *
+   *
+   * PRINT
+   *
+   *
+   */
+
+
+  async printReport() {
+    this.is_requesting_emmiter.emit(true);
+
+    let report_request = await this.electronService.ipcRenderer.invoke("controller.standings.generateReport", this.internal_tournament.uuid, this.selected_round_number, this.categories[this.category_index_selected].uuid);
+    console.log(report_request);
+    if(report_request.ok === 1){
+
+    }
+
+
+    this.is_requesting_emmiter.emit(false);
+  }
+
 }

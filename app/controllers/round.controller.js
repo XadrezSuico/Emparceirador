@@ -543,7 +543,7 @@ async function saveSwissPairings(tournament,number,pairings){
               player_a_uuid: pairing[0].uuid,
               player_b_uuid: null,
               have_result: true,
-              player_a_result: pairing[0].rounds_out[number].points,
+              player_a_result: (pairing[0].rounds_out[number]) ? ((pairing[0].rounds_out[number].points) ? pairing[0].rounds_out[number].points : 0) : 0,
             };
           }else{
             request_pairing = {
@@ -556,6 +556,7 @@ async function saveSwissPairings(tournament,number,pairings){
           let pairing_create = await PairingsController.create(null,round_uuid,request_pairing);
         }
 
+        await updateStandings(null,round_uuid);
         return {ok:1,error:0,data:{number:number,uuid:round_uuid}};
       }
     }

@@ -35,7 +35,7 @@ export class ListPlayersComponent implements OnInit {
 
   async get(){
     let tournament_request = await this.electronService.ipcRenderer.invoke("controller.tournaments.get",this.tournament_uuid);
-    if(tournament_request.ok == 1){
+    if(tournament_request.ok === 1){
       this.tournament = tournament_request.tournament;
 
       for(let ordering of tournament_request.tournament.ordering_sequence){

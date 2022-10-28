@@ -131,7 +131,7 @@ async function generateTiebreakDirectEncounter(player_standing){
 
     // If don't have other players with same points, this tiebreak doesn't work
     if (standings.length === 0) {
-      return -1;
+      return 0;
     }
 
     let points = 0;
@@ -149,14 +149,14 @@ async function generateTiebreakDirectEncounter(player_standing){
           }
         } else {
           // If one of players selected not played with this player, so this tiebreak doesn't work
-          return -2;
+          return 0;
         }
       }
     }
 
     return points;
   }
-  return -3;
+  return 0;
 }
 
 async function generateTieBreakBuchholz(player_standing,better_not_count=0,worst_not_count=0){

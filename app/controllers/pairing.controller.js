@@ -57,16 +57,30 @@ async function create(event, round_uuid, pairing, tournament = null){
       }else{
         if(tournament){
           if (tournament.tournament_type === "SWISS") {
-            resultadoCreate = await Pairings.create({
-              number: pairing.number,
-              player_a_uuid: pairing.player_a_uuid,
-              player_a_result: 1,
-              player_b_result: 0,
-              is_bye: true,
-              have_result: true,
+            if (pairing.have_result) {
+              console.log("have_result");
+              resultadoCreate = await Pairings.create({
+                number: pairing.number,
+                player_a_uuid: pairing.player_a_uuid,
+                player_a_result: pairing.player_a_result,
+                player_b_result: 0,
+                have_result: true,
+                is_bye: true,
 
-              roundUuid: round_uuid,
-            })
+                roundUuid: round_uuid,
+              })
+            }else{
+              resultadoCreate = await Pairings.create({
+                number: pairing.number,
+                player_a_uuid: pairing.player_a_uuid,
+                player_a_result: 1,
+                player_b_result: 0,
+                is_bye: true,
+                have_result: true,
+
+                roundUuid: round_uuid,
+              })
+            }
           }else{
             resultadoCreate = await Pairings.create({
               number: pairing.number,
@@ -79,17 +93,31 @@ async function create(event, round_uuid, pairing, tournament = null){
               roundUuid: round_uuid,
             })
           }
-        }else{
-          resultadoCreate = await Pairings.create({
-            number: pairing.number,
-            player_a_uuid: pairing.player_a_uuid,
-            player_a_result: 1,
-            player_b_result: 0,
-            is_bye: true,
-            have_result: true,
+        } else {
+          if (pairing.have_result) {
+            console.log("have_result");
+            resultadoCreate = await Pairings.create({
+              number: pairing.number,
+              player_a_uuid: pairing.player_a_uuid,
+              player_a_result: pairing.player_a_result,
+              player_b_result: 0,
+              have_result: true,
+              is_bye: true,
 
-            roundUuid: round_uuid,
-          })
+              roundUuid: round_uuid,
+            })
+          } else {
+            resultadoCreate = await Pairings.create({
+              number: pairing.number,
+              player_a_uuid: pairing.player_a_uuid,
+              player_a_result: 1,
+              player_b_result: 0,
+              is_bye: true,
+              have_result: true,
+
+              roundUuid: round_uuid,
+            })
+          }
         }
       }
       // console.log(resultadoCreate);
@@ -190,9 +218,25 @@ async function get(e,uuid) {
   }
 }
 
-async function update(e,pairing){
+async function update(e,pairing,has_result = false){
   try {
-      let resultado = await Pairings.update({
+    // console.log(pairing);
+    let resultado;
+    if (has_result){
+      resultado = await Pairings.update({
+        player_a_result: pairing.player_a_result,
+        player_a_wo: pairing.player_a_wo,
+        player_b_result: pairing.player_b_result,
+        player_b_wo: pairing.player_b_wo,
+        have_result: pairing.have_result,
+        is_bye: pairing.is_bye,
+      }, {
+        where: {
+          uuid: pairing.uuid
+        }
+      })
+    }else{
+      resultado = await Pairings.update({
         number: pairing.number,
         player_a_uuid: pairing.player_a_uuid,
         player_a_result: pairing.player_a_result,
@@ -207,16 +251,14 @@ async function update(e,pairing){
           uuid:pairing.uuid
         }
       })
-
-      let pairing_request = await get(null,pairing.uuid);
-      if (pairing_request.ok === 1) {
-        await RoundsController.updateStandings(null,pairing_request.pairing.round_uuid);
-      }
-      // console.log(resultado);
-      return {ok:1,error:0};
-    } catch (error) {
-        console.log(error);
     }
+    // await RoundsController.updateStandings(null, pairing.round_uuid);
+    return { ok: 1, error: 0 };
+
+    // console.log(resultado);
+  } catch (error) {
+    console.log(error);
+  }
 
 }
 

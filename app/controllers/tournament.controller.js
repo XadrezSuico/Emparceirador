@@ -1,12 +1,13 @@
 const database = require('../db/db');
 const Tournaments = require('../models/tournament.model');
+const Categories = require('../models/category.model');
+const Events = require('../models/event.model');
 
 const PairingsController = require('./pairing.controller');
 
 const dateHelper = require("../helpers/date.helper");
 
 const TournamentDTO = require("../dto/tournament.dto");
-const Categories = require('../models/category.model');
 
 module.exports.setEvents = (ipcMain) => {
   database.sync();
@@ -77,10 +78,16 @@ async function listFromEvent(event,event_uuid) {
       where: {
         eventUuid: event_uuid
       },
-      include: {
-        model: Categories,
-        as: "categories"
-      }
+      include: [
+        {
+          model: Categories,
+          as: "categories"
+        },
+        {
+          model: Events,
+          as: "event"
+        },
+      ]
     });
     // console.log(tournaments);
     return { ok: 1, error: 0, tournaments: await TournamentDTO.convertToExportList(tournaments)};
@@ -96,10 +103,15 @@ async function get(e,uuid) {
       where:{
         uuid:uuid
       },
-      include:{
-        model:Categories,
-        as:"categories"
-      }
+      include: [{
+          model: Categories,
+          as: "categories"
+        },
+        {
+          model: Events,
+          as: "event"
+        }
+      ]
     });
 
     if(tournament){

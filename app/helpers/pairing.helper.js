@@ -12,5 +12,7 @@ module.exports.getAllResultsPossible = async (round_number) => {
      i--;
   }
 
+  results_possible[results_possible.length] = -1;
+
   return results_possible;
 }

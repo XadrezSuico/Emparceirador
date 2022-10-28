@@ -1,0 +1,46 @@
+
+<div>
+  <div *ngIf="tournament">
+    <h1 *ngIf="tournament.event">{{tournament.event.name}}</h1>
+    <h2>Torneio: {{tournament.name}}</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>No.In.</th>
+          <th>Nome</th>
+          <th>Data de Nascimento</th>
+          <th>Categoria</th>
+          <th *ngIf="has_internal_rating">Rating<br />Interno</th>
+          <th *ngIf="has_xadrezsuico_rating">Rating<br />XadrezSuíço</th>
+          <th *ngIf="has_national_rating">Rating<br />Nacional</th>
+          <th *ngIf="has_fide_rating">Rating<br />FIDE</th>
+          <th>Cidade</th>
+          <th>Clube</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let player of players">
+          <td>{{player.start_number}}</td>
+          <td>{{player.name}}</td>
+          <td>{{player.borndate}}</td>
+
+          <td *ngIf="player.category">{{player.category.name}}</td>
+          <td *ngIf="!player.category">-</td>
+
+          <td *ngIf="has_internal_rating">{{player.int_rating}}</td>
+          <td *ngIf="has_xadrezsuico_rating">{{player.xz_rating}}</td>
+          <td *ngIf="has_national_rating">{{player.nat_rating}}</td>
+          <td *ngIf="has_fide_rating">{{player.fide_rating}}</td>
+          <td>
+            <span *ngIf="player.city">{{player.city.name}}</span>
+            <span *ngIf="!player.city">-</span>
+          </td>
+          <td>
+            <span *ngIf="player.club">{{player.club.name}}</span>
+            <span *ngIf="!player.club">-</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,7 +1,6 @@
 const Sequelize = require('sequelize');
 const database = require('../db/db');
 const moment = require('moment');
-const Tournaments = require('./tournament.model');
 
 const Events = database.define('events', {
   id: {
@@ -40,7 +39,5 @@ const Events = database.define('events', {
     allowNull: false
   },
 })
-
-Events.hasMany(Tournaments)
 
 module.exports = Events;

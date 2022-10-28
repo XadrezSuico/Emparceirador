@@ -350,7 +350,7 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
     }
   }
 
-  setEmptyResult(){
+  async setEmptyResult(){
     if(this.row_selected >= 0 && this.row_selected < this.pairings.length){
       if(!this.pairings[this.row_selected].is_bye){
         this.pairings[this.row_selected].player_a_result = null;
@@ -359,12 +359,12 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.pairings[this.row_selected].player_b_wo = null;
         this.pairings[this.row_selected].have_result = false;
 
-        this.updateResult(this.pairings[this.row_selected]);
+        await this.updateResult(this.pairings[this.row_selected]);
       }
     }
   }
 
-  setResult(player_a,player_b){
+  async setResult(player_a,player_b){
     if(this.row_selected >= 0 && this.row_selected < this.pairings.length){
       if(!this.pairings[this.row_selected].is_bye){
         this.pairings[this.row_selected].player_a_result = player_a;
@@ -373,15 +373,15 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.pairings[this.row_selected].player_b_wo = false;
         this.pairings[this.row_selected].have_result = true;
 
-        this.updateResult(this.pairings[this.row_selected]);
-
         if(this.row_selected + 1 < this.pairings.length){
-          this.row_selected++;
+          await this.updateResult(this.pairings[this.row_selected++]);
+        }else{
+          await this.updateResult(this.pairings[this.row_selected]);
         }
       }
     }
   }
-  setResultWO(player_a,player_b){
+  async setResultWO(player_a,player_b){
     if(this.row_selected >= 0 && this.row_selected < this.pairings.length){
       if(!this.pairings[this.row_selected].is_bye){
         this.pairings[this.row_selected].player_a_result = player_a;
@@ -390,21 +390,30 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
         this.pairings[this.row_selected].player_b_wo = (player_b) ? false : true;
         this.pairings[this.row_selected].have_result = true;
 
-        this.updateResult(this.pairings[this.row_selected]);
-
         if(this.row_selected + 1 < this.pairings.length){
-          this.row_selected++;
+          await this.updateResult(this.pairings[this.row_selected++]);
+        }else{
+          await this.updateResult(this.pairings[this.row_selected]);
         }
+
       }
     }
   }
 
   async updateResult(pairing){
-    let return_update_result = await this.electronService.ipcRenderer.invoke("controller.pairings.update", pairing);
+    let return_update_result = await this.electronService.ipcRenderer.invoke("controller.pairings.update", pairing, true);
     if(return_update_result.ok === 1){
       this.statusSelectedRound();
       this.result_change_emitter.emit();
-      return {ok:1,error:0}
+
+      if(this.selected_round_number < this.last_round_number){
+        let return_update_standing = await this.electronService.ipcRenderer.invoke("controller.rounds.updateStandingsFromTournament", this.tournament.uuid, this.selected_round_number);
+        if(return_update_standing.ok === 1){
+          return {ok:1,error:0};
+        }
+      }else{
+        return {ok:1,error:0};
+      }
     }else{
       Swal.fire({
           title: 'Erro!',
@@ -429,5 +438,14 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
       return 0;
     }
     return -1;
+  }
+
+  pointsButtonsEnabled(){
+    if(this.row_selected >= 0){
+      if(!this.pairings[this.row_selected].is_bye){
+        return true;
+      }
+    }
+    return false;
   }
 }

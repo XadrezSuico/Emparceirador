@@ -118,6 +118,56 @@
           </div>
         </div>
       </div>
+      <div *ngIf="player.uuid && tournament.tournament_type === 'SWISS'">
+        <h5>Rodadas Habilitadas para Este Jogador:</h5>
+        <ul>
+          <li *ngFor="let round_number of counter(tournament.rounds_number,false) let i = index">
+            <button type="button"
+              class="btn btn-danger btn-functions"
+              (click)="changePlayerRoundEnabled(i+1)"
+              [disabled]="last_round_number >= i+1"
+              *ngIf="!playerRoundEnabled(i+1)">
+
+              {{i+1}}
+
+            </button>
+            <button type="button"
+              class="btn btn-success btn-functions"
+              (click)="changePlayerRoundEnabled(i+1)"
+              [disabled]="last_round_number >= i+1"
+              *ngIf="playerRoundEnabled(i+1)">
+
+              {{i+1}}
+
+            </button>
+            <div class="btn-group" role="group" aria-label="Basic example">
+              <button type="button" class="btn btn-success" (click)="changePlayerRoundPoints(i+1,0)" [disabled]="last_round_number >= i+1"
+                *ngIf="!playerRoundEnabled(i+1) && !playerRoundPoints(i+1)">
+                0 pts
+              </button>
+              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,0)" [disabled]="last_round_number >= i+1"
+                *ngIf="!playerRoundEnabled(i+1) && playerRoundPoints(i+1)">
+                0 pts
+              </button>
+              <button type="button" class="btn btn-success" (click)="changePlayerRoundPoints(i+1,0.5)" [disabled]="last_round_number >= i+1"
+                *ngIf="!playerRoundEnabled(i+1) && playerRoundPoints(i+1) === 0.5">
+                0.5 pts
+              </button>
+              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,0.5)" [disabled]="last_round_number >= i+1"
+                *ngIf="!playerRoundEnabled(i+1) && !(playerRoundPoints(i+1) === 0.5)">
+                0.5 pts
+              </button><button type="button" class="btn btn-success" (click)="changePlayerRoundPoints(i+1,1)"
+                [disabled]="last_round_number >= i+1" *ngIf="!playerRoundEnabled(i+1) && playerRoundPoints(i+1) === 1">
+                1 pts
+              </button>
+              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,1)"
+                [disabled]="last_round_number >= i+1" *ngIf="!playerRoundEnabled(i+1) && !(playerRoundPoints(i+1) === 1)">
+                1 pts
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
     <div class="modal-footer">
       <button type="submit" class="btn btn-outline-dark">Salvar</button>
@@ -128,47 +178,61 @@
 
 <button class="btn btn-outline-primary btn-functions" (click)="new_player(playerForm)">Novo Jogador</button>
 <button class="btn btn-outline-primary btn-functions" (click)="reorderPlayers()">Reordenar Jogadores</button>
-<table class="table table-striped" *ngIf="players">
-  <thead>
-    <tr>
-      <th scope="col">No. Inicial</th>
-      <th scope="col">Nome</th>
-      <th scope="col">Data de Nascimento</th>
-      <th scope="col">Categoria</th>
-      <th scope="col">Rating<br />Interno</th>
-      <th scope="col">Rating<br />XadrezSuíço</th>
-      <th scope="col">Rating<br />Nacional</th>
-      <th scope="col">Rating<br />FIDE</th>
-      <th scope="col">Cidade</th>
-      <th scope="col">Clube</th>
-      <th scope="col">Opções</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let player of players">
-      <td>{{player.start_number}}</td>
-      <td>{{player.name}}</td>
-      <td>{{player.borndate}}</td>
+<button class="btn btn-outline-primary btn-functions" (click)="printReport()">Imprimir Lista</button>
 
-      <td *ngIf="player.category">{{player.category.name}}</td>
-      <td *ngIf="!player.category">-</td>
+<div #printDiv>
+  <style scoped>
+    .print-heading, .table-heading{
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .table-heading{
+      width: 100%;
+    }
+  </style>
+  <h3 [ngClass]="{'print-heading': print}" *ngIf="tournament.event && print" class="text-center">{{tournament.event.name}}</h3>
+  <h4 [ngClass]="{'print-heading': print}" *ngIf="print" class="text-center">Torneio: {{tournament.name}}</h4>
+  <table [ngClass]="{'table-heading': print}" class="table table-striped" *ngIf="players">
+    <thead>
+      <tr>
+        <th scope="col">No. Inicial</th>
+        <th scope="col">Nome</th>
+        <th scope="col">Data de Nascimento</th>
+        <th scope="col">Categoria</th>
+        <th scope="col">Rating<br />Interno</th>
+        <th scope="col">Rating<br />XadrezSuíço</th>
+        <th scope="col">Rating<br />Nacional</th>
+        <th scope="col">Rating<br />FIDE</th>
+        <th scope="col">Cidade</th>
+        <th scope="col">Clube</th>
+        <th scope="col">Opções</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let player of players">
+        <td>{{player.start_number}}</td>
+        <td>{{player.name}}</td>
+        <td>{{player.borndate}}</td>
 
-      <td>{{player.int_rating}}</td>
-      <td>{{player.xz_rating}}</td>
-      <td>{{player.nat_rating}}</td>
-      <td>{{player.fide_rating}}</td>
-      <td>
-        <span *ngIf="player.city">{{player.city.name}}</span>
-        <span *ngIf="!player.city">-</span>
-      </td>
-      <td>
-        <span *ngIf="player.club">{{player.club.name}}</span>
-        <span *ngIf="!player.club">-</span>
-      </td>
-      <td>
-        <button class="btn btn-outline-primary btn-functions" (click)="get(playerForm,player.uuid)">Editar</button>
-        <button class="btn btn-outline-danger btn-functions" (click)="showRemoveModal(player)">Apagar</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+        <td *ngIf="player.category">{{player.category.name}}</td>
+        <td *ngIf="!player.category">-</td>
+
+        <td>{{player.int_rating}}</td>
+        <td>{{player.xz_rating}}</td>
+        <td>{{player.nat_rating}}</td>
+        <td>{{player.fide_rating}}</td>
+        <td>
+          <span *ngIf="player.city">{{player.city.name}}</span>
+          <span *ngIf="!player.city">-</span>
+        </td>
+        <td>
+          <span *ngIf="player.club">{{player.club.name}}</span>
+          <span *ngIf="!player.club">-</span>
+        </td>
+        <td>
+          <button class="btn btn-outline-primary btn-functions" *ngIf="!print" (click)="get(playerForm,player.uuid)">Editar</button>
+          <button class="btn btn-outline-danger btn-functions" *ngIf="!print" (click)="showRemoveModal(player)">Apagar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

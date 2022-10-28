@@ -1,11 +1,12 @@
 import { Ordering } from './../../../../../../_interfaces/_enums/_ordering';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ElectronService } from '../../../../../../core/services';
 import { Category } from '../../../../../../_interfaces/category';
 import { Player } from '../../../../../../_interfaces/player';
 
 import Swal from 'sweetalert2';
+import {jsPDF} from 'jspdf';
 
 @Component({
   selector: 'app-players-tournament',
@@ -24,6 +25,9 @@ export class PlayersTournamentComponent implements OnInit {
   last_round_number;
   @Input()
   selected_round_number;
+
+  @Output()
+  is_requesting_emmiter = new EventEmitter<boolean>();
 
   players:Array<Player> = [];
 
@@ -133,18 +137,18 @@ export class PlayersTournamentComponent implements OnInit {
     if(this.player.uuid){
       retorno = await this.electronService.ipcRenderer.invoke("controller.players.update", this.player);
 
-      Swal.fire({
-        title: 'Sucesso!',
-        text: 'Jogador editado com sucesso!',
-        icon: 'success',
-        confirmButtonText: 'Fechar',
-        toast: true,
-        position: 'top-right',
-        timer: 3000,
-        timerProgressBar: true,
-      });
-
       if(retorno.ok === 1){
+        Swal.fire({
+          title: 'Sucesso!',
+          text: 'Jogador editado com sucesso!',
+          icon: 'success',
+          confirmButtonText: 'Fechar',
+          toast: true,
+          position: 'top-right',
+          timer: 3000,
+          timerProgressBar: true,
+        });
+
         if(this.player.category_uuid !== this.player_from.category_uuid){
           this.updateStandings();
         }
@@ -167,6 +171,83 @@ export class PlayersTournamentComponent implements OnInit {
     if(retorno.ok){
       this.list();
       this.modalService.dismissAll();
+    }
+  }
+
+  playerRoundEnabled(round_number){
+    if(round_number){
+      if(!this.player.rounds_out){
+        this.player.rounds_out = [];
+      }
+      if(this.player.rounds_out[round_number]){
+        if(this.player.rounds_out[round_number].status){
+          return true;
+        }else{
+          return false;
+        }
+      }else{
+        this.player.rounds_out[round_number] = {
+          status: true,
+          points: 0
+        };
+        return true;
+      }
+    }
+  }
+  playerRoundPoints(round_number){
+    if(round_number){
+      if(!this.player.rounds_out){
+        this.player.rounds_out = [];
+      }
+      if(this.player.rounds_out[round_number]){
+        if(this.player.rounds_out[round_number].points){
+          return this.player.rounds_out[round_number].points;
+        }else{
+          this.player.rounds_out[round_number].points = 0;
+        }
+      }else{
+        this.player.rounds_out[round_number].points = 0;
+        return this.player.rounds_out[round_number].points;
+      }
+    }
+  }
+
+  async changePlayerRoundEnabled(round_number){
+    if(round_number){
+      if(!this.player.rounds_out){
+        this.player.rounds_out = [];
+      }
+      console.log(String(this.player.rounds_out[round_number].status));
+      if(this.player.rounds_out[round_number]){
+        this.player.rounds_out[round_number].status = !this.player.rounds_out[round_number].status;
+      }else{
+        this.player.rounds_out[round_number] = {
+          status: false,
+          points: 0
+        };
+      }
+      console.log(this.player.rounds_out[round_number]);
+      console.log(this.player.rounds_out);
+      return true;
+    }
+  }
+  async changePlayerRoundPoints(round_number,value){
+    if(round_number){
+      if(!this.player.rounds_out){
+        this.player.rounds_out = [];
+      }
+      console.log(String(this.player.rounds_out[round_number].points));
+      if(this.player.rounds_out[round_number]){
+        this.player.rounds_out[round_number].points = value;
+      }else{
+        this.player.rounds_out[round_number] = {
+          status: false,
+          points: value
+        };
+      }
+      console.log(this.player.rounds_out[round_number]);
+      console.log(this.player.rounds_out);
+      return true;
     }
   }
 
@@ -240,6 +321,34 @@ export class PlayersTournamentComponent implements OnInit {
         timerProgressBar: true,
       });
     }
+  }
+
+
+  counter(i: number,with_zero = true) {
+    if(!with_zero){
+      return new Array(i);
+    }
+    return new Array(i+1);
+  }
+
+
+  /*
+   *
+   *
+   * PRINT
+   *
+   *
+   */
+
+
+  async printReport() {
+    this.is_requesting_emmiter.emit(true);
+
+    let retorno = await this.electronService.ipcRenderer.invoke("controller.players.generateReport", this.tournament_uuid);
+    if(retorno.ok){
+    }
+
+    this.is_requesting_emmiter.emit(false);
   }
 
 }

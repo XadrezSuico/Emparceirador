@@ -54,6 +54,8 @@
         [last_round_number]="last_round_number"
         [selected_round_number]="selected_round_number"
         [tournament]="tournament"
+
+        (is_requesting_emmiter)="requestingChange($event)"
       ></app-players-tournament>
       </ng-template>
     </ng-container>
@@ -81,6 +83,8 @@
         <app-results-tournament
         [tournament]="tournament"
         [selected_round_number]="selected_round_number"
+
+        (is_requesting_emmiter)="requestingChange($event)"
         ></app-results-tournament>
       </ng-template>
     </ng-container>

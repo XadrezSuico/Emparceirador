@@ -31,7 +31,8 @@ module.exports.convertToExport = async (player) => {
     category_uuid: player.categoryUuid,
     tournament_uuid: player.tournamentUuid,
 
-    standings: (player.standings) ? await StandingDTO.convertToExportList(player.standings) : null,
+    standings: (player.standings) ? await StandingDTO.convertToExportList(player.standings) : [],
+    rounds_out: (player.rounds_out) ? player.rounds_out : [],
   }
 }
 

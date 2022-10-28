@@ -30,6 +30,7 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.rounds.canGenerateNewRound', canGenerateNewRound)
   ipcMain.handle('controller.rounds.unPairRound', unPairRound)
   ipcMain.handle('controller.rounds.updateStandings', updateStandings)
+  ipcMain.handle('controller.rounds.updateStandingsFromTournament', updateStandingsFromTournament)
 }
 
 module.exports.listAll = listAll;
@@ -332,6 +333,8 @@ async function generateRoundSwiss(tournament){
       // console.log(tournament);
       let last_round = await getLastRound(null,tournament.uuid);
 
+      await updateStandings(null,last_round.round.uuid);
+
       // console.log(last_round)
 
       if(last_round.ok === 1){
@@ -411,131 +414,155 @@ async function generateFirstRoundSwiss(tournament){
 
 
 async function generateAnotherRoundSwiss(tournament){
-  // console.log("generateAnotherRoundSwiss");
-  let pairings = [];
+  try{
+    // console.log("generateAnotherRoundSwiss");
+    let pairings = [];
 
-  let retorno_groups_lists = await PlayersController.listFromTournamentByPoints(null,tournament.uuid,["START_NUMBER","ALPHABETICAL"]);
+    let retorno_groups_lists = await PlayersController.listFromTournamentByPoints(null,tournament.uuid,["START_NUMBER","ALPHABETICAL"]);
 
-  if(retorno_groups_lists.ok === 1){
-    let retorno_last_round = await getLastRound(null,tournament.uuid);
-    if(retorno_last_round.ok === 1){
+    if(retorno_groups_lists.ok === 1){
+      let retorno_last_round = await getLastRound(null,tournament.uuid);
+      if(retorno_last_round.ok === 1){
 
-      let group_lists = retorno_groups_lists.group_points;
+        let group_lists = retorno_groups_lists.group_points;
 
-      let possible_results = await pairingHelper.getAllResultsPossible(retorno_last_round.round.number);
+        let possible_results = await pairingHelper.getAllResultsPossible(retorno_last_round.round.number);
 
-      // console.log(possible_results);
+        // console.log(possible_results);
 
-      let l = 0;
-      for(let psi = 0; psi < possible_results.length; psi++){
-        let possible_result = possible_results[psi];
-        // console.log("Results: ".concat(String(possible_result)));
-        if(group_lists[possible_result]){
-          // console.log("Players: ");
-          // console.log(group_lists[possible_result]);
-          let players = group_lists[possible_result];
-          let total_players = players.length;
-
-          let list_one_count = 0;
-          let list_two_count = 0;
-
-          let list_one = [];
-          let list_two = [];
-
-          if(total_players % 2 === 0){
-            list_one_count = total_players/2;
-            list_two_count = total_players/2;
-          }else{
-            if(possible_result == 0){
-              list_two_count = (total_players+1)/2;
-              list_one_count = total_players - list_two_count;
+        let l = 0;
+        for(let psi = 0; psi < possible_results.length; psi++){
+          let possible_result = possible_results[psi];
+          // console.log("Results: ".concat(String(possible_result)));
+          if(group_lists[possible_result]){
+            if(possible_result === -1){
+              for (let player_not_pairing of group_lists[-1]){
+                pairings[l++] = [player_not_pairing, null, true];
+              }
             }else{
-              let found = false;
-              for(let psi_temp = psi+1; psi_temp < possible_results.length && !found; psi_temp++){
-                let possible_result_temp = possible_results[psi_temp];
-                if(group_lists[possible_result_temp]){
-                  players[players.length] = group_lists[possible_result_temp][0];
-                  let temp_group_list = group_lists[possible_result_temp];
-                  // console.log(temp_group_list);
-                  temp_group_list.shift();
-                  // console.log(temp_group_list);
-                  group_lists[possible_result_temp] = temp_group_list;
-                  found = true;
+              // console.log("Players: ");
+              // console.log(group_lists[possible_result]);
+              let players = group_lists[possible_result];
+              let total_players = players.length;
+
+              let list_one_count = 0;
+              let list_two_count = 0;
+
+              let list_one = [];
+              let list_two = [];
+
+              if(total_players % 2 === 0){
+                list_one_count = total_players/2;
+                list_two_count = total_players/2;
+              }else{
+                if(possible_result == 0){
+                  list_two_count = (total_players+1)/2;
+                  list_one_count = total_players - list_two_count;
+                }else{
+                  let found = false;
+                  for(let psi_temp = psi+1; psi_temp < possible_results.length && !found; psi_temp++){
+                    let possible_result_temp = possible_results[psi_temp];
+                    if(group_lists[possible_result_temp]){
+                      players[players.length] = group_lists[possible_result_temp][0];
+                      let temp_group_list = group_lists[possible_result_temp];
+                      // console.log(temp_group_list);
+                      temp_group_list.shift();
+                      // console.log(temp_group_list);
+                      group_lists[possible_result_temp] = temp_group_list;
+                      found = true;
+                    }
+                  }
+                  total_players = players.length;
+
+                  list_one_count = total_players/2;
+                  list_two_count = total_players/2;
                 }
               }
-              total_players = players.length;
-
-              list_one_count = total_players/2;
-              list_two_count = total_players/2;
-            }
-          }
 
 
-          let i = 1;
-          let j = 1;
-          for(let player of players){
-            if(i <= list_one_count){
-              list_one[j++] = player;
-              if(i === list_one_count){
-                j = 1;
+              let i = 1;
+              let j = 1;
+              for(let player of players){
+                if(i <= list_one_count){
+                  list_one[j++] = player;
+                  if(i === list_one_count){
+                    j = 1;
+                  }
+                  i++;
+                }else{
+                  list_two[j++] = player;
+                  i++;
+                }
               }
-              i++;
-            }else{
-              list_two[j++] = player;
-              i++;
+
+              for(let k = 1; k <= list_one_count; k++){
+                let pairing = [];
+                if(k % 2 === 1){
+                  pairing[0] = list_one[k];
+                  pairing[1] = list_two[k];
+                }else{
+                  pairing[0] = list_two[k];
+                  pairing[1] = list_one[k];
+                }
+                pairings[l++] = pairing;
+              }
+
+              if(list_one_count < list_two_count){
+                pairings[l++] = [list_two[list_one_count + 1],null];
+              }
             }
-          }
 
-          for(let k = 1; k <= list_one_count; k++){
-            let pairing = [];
-            if(k % 2 === 1){
-              pairing[0] = list_one[k];
-              pairing[1] = list_two[k];
-            }else{
-              pairing[0] = list_two[k];
-              pairing[1] = list_one[k];
-            }
-            pairings[l++] = pairing;
           }
-
-          if(list_one_count < list_two_count){
-            pairings[l++] = [list_two[list_one_count + 1],null];
-          }
-
         }
+
+        return saveSwissPairings(tournament,retorno_last_round.round.number + 1,pairings);
       }
-
-      return saveSwissPairings(tournament,retorno_last_round.round.number + 1,pairings);
     }
-  }
 
-  return {ok:1};
+    return {ok:1};
+  }catch(error){
+    console.log(error);
+  }
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 }
 
 async function saveSwissPairings(tournament,number,pairings){
-  // console.log("saveSwissPairings");
-  let round_check = await getByNumber(null,tournament.uuid,number);
-  if(round_check.ok === 0){
-    let round_create = await create(null,tournament.uuid,{number:number});
-    if(round_create.ok === 1){
-      let round_uuid = round_create.data.uuid;
-      let i = 1;
-      for(let pairing of pairings){
-        let request_pairing = {
-          number: i++,
-          player_a_uuid: pairing[0].uuid,
-          player_b_uuid: (pairing[1]) ? pairing[1].uuid : null,
-        };
+  try{
+    // console.log("saveSwissPairings");
+    let round_check = await getByNumber(null,tournament.uuid,number);
+    if(round_check.ok === 0){
+      let round_create = await create(null,tournament.uuid,{number:number});
+      if(round_create.ok === 1){
+        let round_uuid = round_create.data.uuid;
+        let i = 1;
+        for(let pairing of pairings){
+          let request_pairing;
+          if (pairing.length === 3){
+            request_pairing = {
+              number: i++,
+              player_a_uuid: pairing[0].uuid,
+              player_b_uuid: null,
+              have_result: true,
+              player_a_result: pairing[0].rounds_out[number].points,
+            };
+          }else{
+            request_pairing = {
+              number: i++,
+              player_a_uuid: pairing[0].uuid,
+              player_b_uuid: (pairing[1]) ? pairing[1].uuid : null,
+            };
+          }
 
-        let pairing_create = await PairingsController.create(null,round_uuid,request_pairing);
+          let pairing_create = await PairingsController.create(null,round_uuid,request_pairing);
+        }
+
+        return {ok:1,error:0,data:{number:number,uuid:round_uuid}};
       }
-
-      await updateStandings(null, round_uuid);
-
-      return {ok:1,error:0,data:{number:number,uuid:round_uuid}};
     }
+  }catch(error){
+    console.log(error);
   }
-  return {ok:0,error:1,message:"Erro ainda desconhecido"};
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 }
 
 async function generateSchuringTournament(tournament){
@@ -636,10 +663,18 @@ async function canGenerateNewRound(e, tournament_uuid){
   return {ok:0,error:1,message:"Erro inesperado"}
 }
 
+async function updateStandingsFromTournament(e, tournament_uuid, from_number, limit_number = null){
+  let first_round_request = await getByNumber(null, tournament_uuid, from_number);
+  if(first_round_request.ok === 1){
+    let update_standings_request = await updateStandings(null,first_round_request.round.uuid, limit_number);
+    return { ok: 1, error: 0 };
+  }
+  return {ok:0,error:1,message:"Não há rodadas"};
+}
 
-async function updateStandings(e,round_uuid){
+async function updateStandings(e,round_uuid, limit_number = null){
   if(round_uuid){
-    // console.log("updateStandings: ".concat(round_uuid))
+    console.log("updateStandings: ".concat(round_uuid))
     let round_request = await get(null,round_uuid);
     if(round_request.ok === 1){
       let round = round_request.round;
@@ -653,27 +688,43 @@ async function updateStandings(e,round_uuid){
         let all_players_request = await PlayersController.listByTournament(null,tournament.uuid);
         if(all_players_request.ok === 1){
           for(let player of all_players_request.players){
-            console.log("Part1")
+            // console.log("Part1")
             await generateStandingPoints(null,tournament,round,player);
           }
-          console.log("Part2")
+          // console.log("Part2")
           await generateStandingTiebreaks(null, tournament, round);
-          console.log("Part3")
+          // console.log("Part3")
           await orderPlayersTournament(null, tournament, round);
           await orderPlayersCategories(null, tournament, round);
         }
       }
 
-      let last_round_request = await getLastRound(null,tournament.uuid);
-      if(last_round_request.ok === 1){
-        if (last_round_request.round.uuid !== round.uuid){
-          let next_round_request = await getByNumber(null,tournament.uuid, round.number + 1);
-          if(next_round_request.ok === 1){
-            // console.log("Next round: ".concat(next_round_request.round.uuid));
-            await updateStandings(null,next_round_request.round.uuid);
+      if(limit_number){
+        if(round.number < limit_number){
+          let last_round_request = await getLastRound(null, tournament.uuid);
+          if (last_round_request.ok === 1) {
+            if (last_round_request.round.uuid !== round.uuid) {
+              let next_round_request = await getByNumber(null, tournament.uuid, round.number + 1);
+              if (next_round_request.ok === 1) {
+                // console.log("Next round: ".concat(next_round_request.round.uuid));
+                return await updateStandings(null, next_round_request.round.uuid);
+              }
+            }
+          }
+        }
+      }else{
+        let last_round_request = await getLastRound(null, tournament.uuid);
+        if (last_round_request.ok === 1) {
+          if (last_round_request.round.uuid !== round.uuid) {
+            let next_round_request = await getByNumber(null, tournament.uuid, round.number + 1);
+            if (next_round_request.ok === 1) {
+              // console.log("Next round: ".concat(next_round_request.round.uuid));
+              return await updateStandings(null, next_round_request.round.uuid);
+            }
           }
         }
       }
+      return {ok:1,error:0};
     }
   }
   return {ok:0,error:1,message:"Rodada não encontrada."}

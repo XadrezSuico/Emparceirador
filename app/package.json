@@ -1,11 +1,11 @@
 {
-  "name": "angular-electron2",
-  "description": "Angular Electron sample",
+  "name": "xadrezsuico-emparceirador",
+  "description": "Sistema de Emparceiramento de Xadrez",
   "author": {
-    "name": "Maxime GRIS",
-    "email": "maxime.gris@gmail.com"
+    "name": "Joao Paulo Polles",
+    "email": "joaopaulopolles@gmail.com"
   },
-  "version": "11.2.0",
+  "version": "0.0.1",
   "main": "main.js",
   "private": true,
   "dependencies": {

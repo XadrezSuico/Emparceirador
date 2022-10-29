@@ -11,6 +11,7 @@ const args = process.argv.slice(1),
 let size;
 let browser_window_opts;
 let browser_window_pdf_opts;
+let pdf_window;
 
 
 
@@ -104,20 +105,26 @@ function createPdfWindow(): BrowserWindow {
     marginLeft: "15px",
     marginRight: "15px",
   };
-  window_to_PDF.webContents.on('did-finish-load', () => {
-    setTimeout(() => {
-      // Use default printing options
-      const pdfPath = path.join(__dirname, '__temp_reports', 'report.pdf')
-      window_to_PDF.webContents.printToPDF(options).then(data => {
-        fs.writeFile(pdfPath, data, (error) => {
-          if (error) throw error
-          console.log(`Wrote PDF successfully to ${pdfPath}`)
-        })
-      }).catch(error => {
-        console.log(`Failed to write PDF to ${pdfPath}: `, error)
-      })
-    }, 500);
-  })
+
+  // Use default printing options
+  if (!fs.existsSync(path.join(app.getPath('userData'), '__temp_reports'))) {
+    fs.mkdirSync(path.join(app.getPath('userData'), '__temp_reports'));
+  }
+
+  // window_to_PDF.webContents.on('did-finish-load', () => {
+  //   setTimeout(() => {
+  //     const pdfPath = path.join(app.getPath('userData'), '__temp_reports', 'report.pdf')
+  //     console.log(window_to_PDF.webContents.toString())
+  //     window_to_PDF.webContents.printToPDF(options).then(data => {
+  //       fs.writeFile(pdfPath, data, (error) => {
+  //         if (error) throw error
+  //         console.log(`Wrote PDF successfully to ${pdfPath}`)
+  //       })
+  //     }).catch(error => {
+  //       console.log(`Failed to write PDF to ${pdfPath}: `, error)
+  //     })
+  //   }, 500);
+  // })
 
   return window_to_PDF;
 }
@@ -126,6 +133,60 @@ function createShowPdfWindow() {
   const win = new PDFWindow(browser_window_opts)
 
   return win;
+}
+
+async function generateAndOpenPdf(angular_path){
+  // Path when running electron executable
+  let pathIndex = './index.html';
+
+  if (fs.existsSync(path.join(__dirname, '../dist/index.html'))) {
+      // Path when running electron in local folder
+    pathIndex = '../dist/index.html';
+  }
+
+  const url = new URL(path.join('file:', __dirname, pathIndex));
+
+  console.log(url);
+  console.log(url.href.concat("?elec_route=").concat(angular_path));
+
+  await pdf_window.loadURL(url.href.concat("?elec_route=").concat(angular_path)); //give the file link you want to display
+
+  var options = {
+    landscape: true,
+    marginsType: 0,
+    printBackground: false,
+    printSelectionOnly: false,
+    pageSize: "A4",
+
+    marginTop: "15px",
+    marginBottom: "15px",
+    marginLeft: "15px",
+    marginRight: "15px",
+  };
+
+  setTimeout(() => {
+      const pdfPath = path.join(app.getPath('userData'), '__temp_reports', 'report.pdf')
+      console.log(pdf_window.webContents.toString())
+      pdf_window.webContents.printToPDF(options).then(data => {
+        fs.writeFile(pdfPath, data, (error) => {
+          if (error) throw error
+          console.log(`Wrote PDF successfully to ${pdfPath}`)
+        })
+      }).catch(error => {
+        console.log(`Failed to write PDF to ${pdfPath}: `, error)
+      })
+  }, 500);
+
+  setTimeout(() => {
+
+    let window_show_pdf = createShowPdfWindow();
+
+    const pdf_url = new URL(path.join(app.getPath('userData'), '__temp_reports', 'report.pdf'));
+    window_show_pdf.loadURL(pdf_url.href)
+
+    window_show_pdf.setTitle("Relatório");
+
+  }, 1500);
 }
 
 const event_controller = require("./controllers/event.controller")
@@ -143,8 +204,7 @@ try {
   // Some APIs can only be used after this event occurs.
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
   app.on('ready', async () => {
-    const pdf_window = await createPdfWindow();
-    // const pdf_window_show = await createShowPdfWindow();
+    pdf_window = await createPdfWindow();
 
 
     setTimeout(async () =>{
@@ -152,10 +212,10 @@ try {
       event_controller.setEvents(ipcMain)
       tournament_controller.setEvents(ipcMain)
       category_controller.setEvents(ipcMain)
-      player_controller.setEvents(ipcMain, pdf_window, createShowPdfWindow)
+      player_controller.setEvents(ipcMain, generateAndOpenPdf)
       round_controller.setEvents(ipcMain)
-      pairing_controller.setEvents(ipcMain, pdf_window, createShowPdfWindow)
-      standing_controller.setEvents(ipcMain, pdf_window, createShowPdfWindow)
+      pairing_controller.setEvents(ipcMain, generateAndOpenPdf)
+      standing_controller.setEvents(ipcMain, generateAndOpenPdf)
       tiebreak_controller.setEvents(ipcMain)
 
 

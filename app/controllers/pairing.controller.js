@@ -18,14 +18,12 @@ const Players = require('../models/player.model');
 const { Op } = require('sequelize');
 const Standings = require('../models/standing.model');
 
-let window_pdf;
-let pdf_window_func;
+let pdf_func;
 
-module.exports.setEvents = (ipcMain, pdf_window, __pdf_window_func) => {
+module.exports.setEvents = (ipcMain, generateAndOpenPdf) => {
   database.sync();
 
-  window_pdf = pdf_window;
-  pdf_window_func = __pdf_window_func;
+  pdf_func = generateAndOpenPdf;
 
   ipcMain.handle('controller.pairings.listAll', listAll)
   ipcMain.handle('controller.pairings.listByRound', listFromRound)
@@ -464,29 +462,7 @@ async function generateReport(e, tournament_uuid, round_number) {
       let round_request = await RoundsController.getByNumber(null, tournament_uuid, round_number);
       if (round_request.ok === 1) {
         let round = round_request.round;
-
-        // Path when running electron executable
-        let pathIndex = '../../index.html';
-
-        if (fs.existsSync(path.join(__dirname, '../../dist/index.html'))) {
-          // Path when running electron in local folder
-          pathIndex = '../../dist/index.html';
-        }
-
-        const url = new URL(path.join('file:', __dirname, pathIndex));
-
-        console.log(url);
-        console.log(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/pairings/").concat(round.uuid)));
-
-        await window_pdf.loadURL(url.href.concat("?elec_route=print/tournament/".concat(tournament_uuid).concat("/pairings/").concat(round.uuid))); //give the file link you want to display
-
-        setTimeout(() => {
-          let window_show_pdf = pdf_window_func();
-
-          const pdf_url = new URL(path.join('file:', __dirname, "../../app/__temp_reports/report.pdf"));
-          window_show_pdf.loadURL(pdf_url.href)
-
-        }, 1000);
+        await pdf_func("print/tournament/".concat(tournament_uuid).concat("/pairings/").concat(round.uuid));
         return { ok: 1, error: 0 };
       }
     }

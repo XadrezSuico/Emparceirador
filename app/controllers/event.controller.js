@@ -1,7 +1,12 @@
+const { BrowserWindow } = require('electron');
+
 const database = require('../db/db');
 const Events = require('../models/event.model');
 
+const ImportExportController = require("./import-export.controller");
+
 const dateHelper = require("../helpers/date.helper");
+const { ipcMain } = require('electron');
 
 module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.events.listAll', listAll)
@@ -10,6 +15,21 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.events.get', get)
   ipcMain.handle('controller.events.update', update)
   ipcMain.handle('controller.events.remove', remove)
+
+  ipcMain.addListener("controller.events.need_export", need_export);
+}
+
+module.exports.get = get
+module.exports.create = create
+module.exports.update = update
+module.exports.remove = remove
+module.exports.listAll = listAll
+
+async function need_export(event_uuid) {
+  let event_request = await get(null, event_uuid);
+  if (event_request.ok === 1) {
+    ipcMain.emit("controller.import-export.export_event", event_uuid);
+  }
 }
 
 async function create(event, xadrezsuico){
@@ -22,7 +42,11 @@ async function create(event, xadrezsuico){
             date_finish: dateHelper.convertToSql(xadrezsuico.date_finish),
             time_control: xadrezsuico.time_control,
             place: xadrezsuico.place,
+            file_path: xadrezsuico.file_path,
         })
+
+        ipcMain.emit("controller.import-export.export_event",resultadoCreate.uuid);
+
         return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);
@@ -61,6 +85,7 @@ async function listAll() {
         date_finish: dateHelper.convertToBr(event.date_finish),
         place: event.place,
         time_control: event.time_control,
+        file_path: event.file_path,
       };
 
       events_return[i++] = event_return;
@@ -82,7 +107,8 @@ async function get(e,uuid) {
       date_start: dateHelper.convertToBr(event.date_start),
       date_finish: dateHelper.convertToBr(event.date_finish),
       place: event.place,
-      time_control: event.time_control
+      time_control: event.time_control,
+      file_path: event.file_path,
     };
 
     return {ok:1,error:0,event:event_return};
@@ -99,13 +125,16 @@ async function update(e,event){
       date_start: dateHelper.convertToSql(event.date_start),
       date_finish: dateHelper.convertToSql(event.date_finish),
       place: event.place,
-      time_control: event.time_control
+      time_control: event.time_control,
+      file_path: event.file_path,
       },{
         where:{
           uuid:event.uuid
         }
       })
-      // console.log(resultado);
+    // console.log(resultado);
+
+      ipcMain.emit("controller.import-export.export_event", event.uuid);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);

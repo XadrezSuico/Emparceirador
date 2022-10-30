@@ -198,6 +198,8 @@ const pairing_controller = require("./controllers/pairing.controller")
 const standing_controller = require("./controllers/standing.controller")
 const tiebreak_controller = require("./controllers/tiebreak.controller")
 
+const import_export_controller = require("./controllers/import-export.controller")
+
 try {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
@@ -217,6 +219,8 @@ try {
       pairing_controller.setEvents(ipcMain, generateAndOpenPdf)
       standing_controller.setEvents(ipcMain, generateAndOpenPdf)
       tiebreak_controller.setEvents(ipcMain)
+
+      import_export_controller.setEvents(ipcMain)
 
 
 

@@ -21,6 +21,13 @@
               <input type="text" name="date_finish" id="date_finish" class="form-control" [(ngModel)]="xadrezsuico.date_finish" mask="00/00/0000" [dropSpecialCharacters]="false" />
             </div>
             <div class="form-group">
+              <label for="file_path">Arquivo:</label>
+              <div class="input-group mb-3">
+                <input type="text" name="file_path" id="file_path" class="form-control" [(ngModel)]="xadrezsuico.file_path" disabled />
+                <button class="btn btn-primary" type="button" (click)="openSaveDialog()">Definir Local para Salvar</button>
+              </div>
+            </div>
+            <div class="form-group">
               <label for="time_control">Controle de Tempo:</label>
               <select name="time_control" id="time_control" class="form-select" [(ngModel)]="xadrezsuico.time_control">
                 <option value="BTZ">Blitz/Relâmpago</option>

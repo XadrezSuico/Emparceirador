@@ -3,6 +3,8 @@ const Tournaments = require('../models/tournament.model');
 const Categories = require('../models/category.model');
 const Events = require('../models/event.model');
 
+const { ipcMain } = require('electron');
+
 const PairingsController = require('./pairing.controller');
 
 const dateHelper = require("../helpers/date.helper");
@@ -17,6 +19,8 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.tournaments.create', create)
   ipcMain.handle('controller.tournaments.get', get)
   ipcMain.handle('controller.tournaments.update', update)
+
+  ipcMain.addListener("controller.tournaments.need_export", need_export);
 }
 
 
@@ -27,6 +31,13 @@ module.exports.create = create;
 module.exports.get = get;
 module.exports.update = update;
 module.exports.getPlayerPoints = getPlayerPoints;
+
+async function need_export(tournament_uuid) {
+  let tournament_request = await get(null, tournament_uuid);
+  if (tournament_request.ok === 1) {
+    ipcMain.emit("controller.events.need_export", tournament_request.tournament.event_uuid);
+  }
+}
 
 
 
@@ -42,6 +53,9 @@ async function create(event, event_uuid, tournament){
         tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
       })
       // console.log(resultadoCreate);
+
+      need_export(resultadoCreate.uuid);
+
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);
@@ -139,6 +153,8 @@ async function update(e,uuid,tournament){
         }
       })
       // console.log(resultado);
+
+      need_export(tournament.uuid);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);

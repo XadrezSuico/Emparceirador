@@ -37,6 +37,21 @@ export class NewEventComponent implements OnInit {
     this.xadrezsuico = xs_file_factory.create();
 
     this.electronService.ipcRenderer.send("set-title", "Novo Evento");
+
+    this.electronService.ipcRenderer.on("controllers.events.created",(_event,value) => {
+      console.log(value);
+      if(value.ok === 1){
+        console.log("/event/".concat(value.data.uuid).concat("/dashboard"));
+        setTimeout(()=>{
+          this.router.navigate(["/?elec_route=event/".concat(value.data.uuid).concat("/dashboard")]);
+        },500);
+      }
+    });
+
+
+    this.electronService.ipcRenderer.on("controllers.events.selectedFile",(_event,value) => {
+      this.xadrezsuico.file_path = value;
+    });
   }
 
   ngOnInit() {
@@ -49,6 +64,11 @@ export class NewEventComponent implements OnInit {
     if(retorno.ok == 1){
         this.router.navigate(["/event/".concat(retorno.data.uuid).concat("/dashboard")]);
     }
+  }
+
+
+  async openSaveDialog(){
+    await this.electronService.ipcRenderer.invoke("controller.import-export.save_file_dialog","controllers.events.selectedFile");
   }
 
 }

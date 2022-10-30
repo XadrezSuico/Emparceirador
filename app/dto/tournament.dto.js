@@ -1,5 +1,6 @@
 const CategoryDTO = require("./category.dto")
 const EventDTO = require("./event.dto")
+const RoundDTO = require("./round.dto")
 
 module.exports.convertToExport = async (tournament) => {
   return {
@@ -26,4 +27,19 @@ module.exports.convertToExportList = async (tournaments) => {
   // console.log(tournaments_export);
 
   return tournaments_export;
+}
+
+
+module.exports.convertToFile = async (tournament) => {
+  return {
+    uuid: tournament.uuid,
+    name: tournament.name,
+    tournament_type: tournament.tournament_type,
+    rounds_number: tournament.rounds_number,
+    table_start_number: (tournament.table_start_number) ? tournament.table_start_number : 1,
+    ordering_sequence: (tournament.ordering_sequence) ? tournament.ordering_sequence : [],
+    tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
+    categories: (tournament.categories) ? await CategoryDTO.convertToExportList(tournament.categories) : [],
+    rounds: (tournament.rounds) ? await RoundDTO.convertToExportList(tournament.rounds) : [],
+  }
 }

@@ -1,5 +1,6 @@
 const database = require('../db/db');
 const Categories = require('../models/category.model');
+const { ipcMain } = require('electron');
 
 const dateHelper = require("../helpers/date.helper");
 
@@ -12,6 +13,8 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.categories.get', get)
   ipcMain.handle('controller.categories.update', update)
   ipcMain.handle('controller.categories.remove', remove)
+
+  ipcMain.addListener("controller.categories.need_export", need_export);
 }
 
 module.exports.create = create;
@@ -20,6 +23,13 @@ module.exports.listFromTournament = listFromTournament;
 module.exports.get = get;
 module.exports.update = update;
 module.exports.remove = remove;
+
+async function need_export(category_uuid){
+  let category_request = await get(null,category_uuid);
+  if (category_request.ok === 1) {
+    ipcMain.emit("controller.tournaments.need_export", category_request.category.tournament_uuid);
+  }
+}
 
 async function create(event, tournament_uuid, category){
   try {
@@ -30,6 +40,8 @@ async function create(event, tournament_uuid, category){
         tournamentUuid: tournament_uuid,
       })
       // console.log(resultadoCreate);
+
+      need_export(resultadoCreate.uuid);
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);
@@ -114,6 +126,7 @@ async function update(e,category){
         }
       })
       // console.log(resultado);
+      need_export(category.uuid);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);

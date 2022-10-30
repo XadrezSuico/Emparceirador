@@ -38,6 +38,10 @@ const Events = database.define('events', {
     type: Sequelize.STRING,
     allowNull: false
   },
+  file_path: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
 })
 
 module.exports = Events;

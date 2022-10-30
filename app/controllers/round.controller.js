@@ -1,5 +1,6 @@
 const database = require('../db/db');
 const Rounds = require('../models/round.model');
+const { ipcMain } = require('electron');
 
 const PlayersController = require('../controllers/player.controller');
 const PairingsController = require('../controllers/pairing.controller');
@@ -31,6 +32,8 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.rounds.unPairRound', unPairRound)
   ipcMain.handle('controller.rounds.updateStandings', updateStandings)
   ipcMain.handle('controller.rounds.updateStandingsFromTournament', updateStandingsFromTournament)
+
+  ipcMain.addListener("controller.rounds.need_export", need_export);
 }
 
 module.exports.listAll = listAll;
@@ -45,6 +48,13 @@ module.exports.generateRound = generateRound;
 module.exports.canGenerateNewRound = canGenerateNewRound;
 module.exports.updateStandings = updateStandings;
 
+
+async function need_export(rounds_uuid) {
+  let round_request = await get(null, rounds_uuid);
+  if (round_request.ok === 1) {
+    ipcMain.emit("controller.tournaments.need_export", round_request.round.tournament_uuid);
+  }
+}
 async function create(event, tournament_uuid, round){
   try {
       let resultadoCreate = await Rounds.create({
@@ -164,7 +174,8 @@ async function update(e,round){
           uuid: round.uuid
         }
       })
-      // console.log(resultado);
+    // console.log(resultado);
+      need_export(round.uuid);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);
@@ -288,6 +299,9 @@ async function unPairRound(e, tournament_uuid, round_number) {
           await PairingsController.removeByRound(null, last_round_request.round.uuid);
           await remove(null, last_round_request.round.uuid);
 
+
+          ipcMain.emit("controller.tournaments.need_export", last_round_request.round.tournament_uuid);
+
           return { ok: 1, error: 0 }
         } else {
           return { ok: 0, error: 1, message: "Não é possível desemparceirar essa rodada. A rodada de número ".concat(String(round_number)).concat(" não é a mais recente.") }
@@ -310,6 +324,9 @@ async function unPairRound(e, tournament_uuid, round_number) {
 
             let remove_rounds_from_tournament_request = await removeByTournament(null, tournament.uuid);
             if (remove_rounds_from_tournament_request.ok === 1) {
+
+
+              ipcMain.emit("controller.tournaments.need_export", tournament.uuid);
               return { ok: 1, error: 0 }
             }
 
@@ -557,6 +574,7 @@ async function saveSwissPairings(tournament,number,pairings){
         }
 
         await updateStandings(null,round_uuid);
+        need_export(round_uuid);
         return {ok:1,error:0,data:{number:number,uuid:round_uuid}};
       }
     }
@@ -621,7 +639,7 @@ async function saveSchuringPairings(tournament, number, pairings) {
       }
 
       await updateStandings(null, round_uuid);
-
+      need_export(round_uuid);
       return { ok: 1, error: 0, data: { number: number, uuid: round_uuid } };
     }
   }

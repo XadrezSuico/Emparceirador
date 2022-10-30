@@ -1,6 +1,7 @@
 const database = require('../db/db');
 const fs = require('fs');
 const path = require('path');
+const { ipcMain } = require('electron');
 
 const Players = require('../models/player.model');
 const Tournaments = require('../models/tournament.model');
@@ -48,6 +49,12 @@ module.exports.remove = remove;
 module.exports.reorderPlayers = reorderPlayers;
 module.exports.generateTemporaryTournamentInfos = generateTemporaryTournamentInfos;
 
+async function need_export(player_uuid) {
+  let player_request = await get(null, player_uuid);
+  if (player_request.ok === 1) {
+    ipcMain.emit("controller.tournaments.need_export", player_request.player.tournament_uuid);
+  }
+}
 async function create(event, tournament_uuid, player){
   try {
       let rounds_out = [];
@@ -64,8 +71,16 @@ async function create(event, tournament_uuid, player){
           let last_round_request = await RoundsController.getLastRound(null, tournament_uuid);
           if(last_round_request.ok === 1){
             for(let i = 1; i <= last_round_request.round.number; i++){
-              rounds_out[i].status = false;
-              rounds_out[i].not_registered = true;
+              if (rounds_out[i]){
+                rounds_out[i].status = false;
+                rounds_out[i].not_registered = true;
+              }else{
+                rounds_out[i] = {
+                  status: false,
+                  points: 0,
+                  not_registered: true
+                }
+              }
               console.log(i);
             }
           }
@@ -98,6 +113,8 @@ async function create(event, tournament_uuid, player){
         tournamentUuid: tournament_uuid,
       })
       // console.log(resultadoCreate);
+      need_export(resultadoCreate.uuid);
+
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);
@@ -337,6 +354,8 @@ async function update(e,player){
         }
       })
       // console.log(resultado);
+      need_export(player.uuid);
+
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);
@@ -359,13 +378,14 @@ async function remove(e,uuid) {
     // console.log(uuid);
     let player = await Players.findByPk(uuid);
 
-    if(player){
+    if (player) {
       let rows = await Players.destroy({
         where: {
           uuid: uuid
         }
       });
       if(rows === 1){
+        ipcMain.emit("controller.tournaments.need_export", player.tournamentUuid);
         return { ok: 1, error: 0 };
       }else{
         return { ok: 0, error: 1, message: "Erro ainda desconhecido" };

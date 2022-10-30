@@ -143,6 +143,7 @@ async function remove(e,uuid) {
           uuid: uuid
         }
       });
+      ipcMain.emit("controller.tournaments.need_export", category.tournamentUuid);
       return {ok:1,error:0};
     }else{
       return {ok:0,error:1,message:"Categoria não encontrada"};

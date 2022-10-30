@@ -73,7 +73,6 @@ async function export_event(event_uuid){
 
 
               let pairings_request = await PairingsController.listByRound(null, rnd.uuid);
-              console.log(pairings_request);
               if (pairings_request.ok === 1) {
                 event_to_file.tournaments[index].rounds[index_rounds].pairings = [];
 

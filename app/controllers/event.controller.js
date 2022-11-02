@@ -1,9 +1,13 @@
 const { BrowserWindow } = require('electron');
 
+const { uuid } = require('uuidv4');
+
+
 const database = require('../db/db');
 const Events = require('../models/event.model');
 
 const ImportExportController = require("./import-export.controller");
+const EventDeleteController = require("./event-delete.controller");
 
 const dateHelper = require("../helpers/date.helper");
 const { ipcMain } = require('electron');
@@ -15,12 +19,14 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.events.get', get)
   ipcMain.handle('controller.events.update', update)
   ipcMain.handle('controller.events.remove', remove)
+  ipcMain.handle('controller.events.delete', remove)
 
   ipcMain.addListener("controller.events.need_export", need_export);
 }
 
 module.exports.get = get
 module.exports.create = create
+module.exports.import = Import
 module.exports.update = update
 module.exports.remove = remove
 module.exports.listAll = listAll
@@ -32,25 +38,50 @@ async function need_export(event_uuid) {
   }
 }
 
-async function create(event, xadrezsuico){
+async function create(e, event, is_import = false){
   try {
-        await database.sync();
+    await database.sync();
 
-        const resultadoCreate = await Events.create({
-            name: xadrezsuico.name,
-            date_start: dateHelper.convertToSql(xadrezsuico.date_start),
-            date_finish: dateHelper.convertToSql(xadrezsuico.date_finish),
-            time_control: xadrezsuico.time_control,
-            place: xadrezsuico.place,
-            file_path: xadrezsuico.file_path,
-        })
+    console.log("create event");
+    console.log(event);
 
-        ipcMain.emit("controller.import-export.export_event",resultadoCreate.uuid);
+    const resultadoCreate = await Events.create({
+        name: event.name,
+        date_start: dateHelper.convertToSql(event.date_start),
+        date_finish: dateHelper.convertToSql(event.date_finish),
+        time_control: event.time_control,
+        place: event.place,
+        file_path: event.file_path,
+    })
 
-        return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
-    } catch (error) {
-        console.log(error);
-    }
+    ipcMain.emit("controller.import-export.export_event",resultadoCreate.uuid);
+
+    return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
+  } catch (error) {
+      console.log(error);
+  }
+}
+
+async function Import(e, event) {
+  try {
+    await database.sync();
+
+    console.log(event);
+
+    const resultadoCreate = await Events.create({
+      uuid: (event.uuid) ? event.uuid : uuid(),
+      name: event.name,
+      date_start: dateHelper.convertToSql(event.date_start),
+      date_finish: dateHelper.convertToSql(event.date_finish),
+      time_control: event.time_control,
+      place: event.place,
+      file_path: event.file_path,
+    })
+
+    return { ok: 1, error: 0, data: { uuid: resultadoCreate.uuid } };
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function createExample(){
@@ -101,20 +132,26 @@ async function get(e,uuid) {
   try {
     const event = await Events.findByPk(uuid);
 
-    let event_return = {
-      uuid: event.uuid,
-      name: event.name,
-      date_start: dateHelper.convertToBr(event.date_start),
-      date_finish: dateHelper.convertToBr(event.date_finish),
-      place: event.place,
-      time_control: event.time_control,
-      file_path: event.file_path,
-    };
+    if(event){
 
-    return {ok:1,error:0,event:event_return};
+      let event_return = {
+        uuid: event.uuid,
+        name: event.name,
+        date_start: dateHelper.convertToBr(event.date_start),
+        date_finish: dateHelper.convertToBr(event.date_finish),
+        place: event.place,
+        time_control: event.time_control,
+        file_path: event.file_path,
+      };
+
+      return { ok: 1, error: 0, event: event_return };
+    }else{
+      return { ok: 0, error: 1, message: "Evento não encontrado", not_found: true };
+    }
   } catch (error) {
       console.log(error);
   }
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido", not_found: false };
 }
 
 
@@ -146,11 +183,7 @@ async function remove(e,uuid) {
     let event = await Events.findByPk(uuid);
 
     if(event){
-      Events.destroy({
-        where: {
-          uuid: uuid
-        }
-      });
+      await EventDeleteController.remove(uuid);
       return {ok:1,error:0};
     }else{
       return {ok:0,error:1,message:"Evento não encontrado"};

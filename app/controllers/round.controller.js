@@ -1,6 +1,7 @@
 const database = require('../db/db');
 const Rounds = require('../models/round.model');
 const { ipcMain } = require('electron');
+const { uuid } = require('uuidv4');
 
 const PlayersController = require('../controllers/player.controller');
 const PairingsController = require('../controllers/pairing.controller');
@@ -40,6 +41,7 @@ module.exports.listAll = listAll;
 module.exports.listFromTournament = listFromTournament;
 module.exports.listByTournament = listFromTournament;
 module.exports.create = create;
+module.exports.import = Import;
 module.exports.get = get;
 module.exports.update = update;
 module.exports.getLastRound = getLastRound;
@@ -47,6 +49,7 @@ module.exports.getByNumber = getByNumber;
 module.exports.generateRound = generateRound;
 module.exports.canGenerateNewRound = canGenerateNewRound;
 module.exports.updateStandings = updateStandings;
+module.exports.remove = remove;
 
 
 async function need_export(rounds_uuid) {
@@ -58,14 +61,27 @@ async function need_export(rounds_uuid) {
 async function create(event, tournament_uuid, round){
   try {
       let resultadoCreate = await Rounds.create({
-          number: round.number,
-          tournamentUuid: tournament_uuid
+        number: round.number,
+        tournamentUuid: tournament_uuid
       })
       // console.log(resultadoCreate);
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);
     }
+}
+async function Import(event, tournament_uuid, round) {
+  try {
+    let resultadoCreate = await Rounds.create({
+      uuid: (round.uuid) ? round.uuid : uuid(),
+      number: round.number,
+      tournamentUuid: tournament_uuid
+    })
+    // console.log(resultadoCreate);
+    return { ok: 1, error: 0, data: { uuid: resultadoCreate.uuid } };
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function listAll() {
@@ -133,9 +149,13 @@ async function get(e,uuid) {
       ]
     });
 
+    if(round){
+      return { ok: 1, error: 0, round: await RoundDTO.convertToExport(round) };
+    }
+
+    return { ok: 0, error: 1, message: "Rodada não encontrada" }
     // console.log(round);
 
-    return {ok:1,error:0,round:await RoundDTO.convertToExport(round)};
   } catch (error) {
       console.log(error);
   }
@@ -872,5 +892,22 @@ function sortFunction(a,b){
       }
     }
     return 0
+  }
+}
+
+
+async function remove(e, uuid) {
+  try {
+    let event = await Rounds.findByPk(uuid);
+
+    if (event) {
+      await Rounds.destroy({ where: { uuid: uuid } });
+      return { ok: 1, error: 0 };
+    } else {
+      return { ok: 0, error: 1, message: "Rodada não encontrada" };
+    }
+
+  } catch (error) {
+    console.log(error);
   }
 }

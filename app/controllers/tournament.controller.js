@@ -4,6 +4,7 @@ const Categories = require('../models/category.model');
 const Events = require('../models/event.model');
 
 const { ipcMain } = require('electron');
+const { uuid } = require('uuidv4');
 
 const PairingsController = require('./pairing.controller');
 
@@ -28,9 +29,11 @@ module.exports.setEvents = (ipcMain) => {
 module.exports.listAll = listAll;
 module.exports.listFromEvent = listFromEvent;
 module.exports.create = create;
+module.exports.import = Import;
 module.exports.get = get;
 module.exports.update = update;
 module.exports.getPlayerPoints = getPlayerPoints;
+module.exports.remove = remove;
 
 async function need_export(tournament_uuid) {
   let tournament_request = await get(null, tournament_uuid);
@@ -41,7 +44,7 @@ async function need_export(tournament_uuid) {
 
 
 
-async function create(event, event_uuid, tournament){
+async function create(event, event_uuid, tournament, is_import = false){
   try {
       let resultadoCreate = await Tournaments.create({
         name: tournament.name,
@@ -60,6 +63,28 @@ async function create(event, event_uuid, tournament){
     } catch (error) {
         console.log(error);
     }
+}
+
+
+async function Import(event, event_uuid, tournament, is_import = false) {
+  try {
+    let resultadoCreate = await Tournaments.create({
+      uuid: (tournament.uuid) ? tournament.uuid : uuid(),
+      name: tournament.name,
+      tournament_type: tournament.tournament_type,
+      rounds_number: tournament.rounds_number,
+      table_start_number: (tournament.table_start_number) ? tournament.table_start_number : 1,
+      eventUuid: event_uuid,
+      ordering_sequence: (tournament.ordering_sequence) ? tournament.ordering_sequence : [],
+      tiebreaks: (tournament.tiebreaks) ? tournament.tiebreaks : [],
+    })
+    // console.log(resultadoCreate);
+
+
+    return { ok: 1, error: 0, data: { uuid: resultadoCreate.uuid } };
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function listAll() {
@@ -131,6 +156,7 @@ async function get(e,uuid) {
     if(tournament){
       return { ok: 1, error: 0, tournament: await TournamentDTO.convertToExport(tournament) };
     }
+    return { ok: 0, error: 1, message: "Torneio não encontrado" };
   } catch (error) {
       console.log(error);
   }
@@ -180,6 +206,21 @@ async function getPlayerPoints(e,uuid,player_uuid) {
 }
 
 
+async function remove(e, uuid) {
+  try {
+    let event = await Tournaments.findByPk(uuid);
+
+    if (event) {
+      await Tournaments.destroy({where:{uuid:uuid}});
+      return { ok: 1, error: 0 };
+    } else {
+      return { ok: 0, error: 1, message: "Torneio não encontrado" };
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 function getDefaultOrdering(){
   [

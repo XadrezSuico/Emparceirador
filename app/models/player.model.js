@@ -9,11 +9,13 @@ Players.belongsTo(Categories)
 
 Players.hasMany(Pairings, {
   foreignKey: "player_a_uuid",
-  as: "player_a"
+  as: "player_a",
+  onDelete: "CASCADE"
 })
 Players.hasMany(Pairings, {
   foreignKey: "player_b_uuid",
-  as: "player_b"
+  as: "player_b",
+  onDelete: "CASCADE"
 })
 Players.hasMany(Standings)
 

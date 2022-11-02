@@ -2,6 +2,7 @@ const database = require('../db/db');
 const fs = require('fs');
 const path = require('path');
 const { ipcMain } = require('electron');
+const { uuid } = require('uuidv4');
 
 const Players = require('../models/player.model');
 const Tournaments = require('../models/tournament.model');
@@ -43,6 +44,7 @@ module.exports.listByTournament = listFromTournament;
 module.exports.listFromTournament = listFromTournament;
 module.exports.listFromTournamentByPoints = listFromTournamentByPoints;
 module.exports.create = create;
+module.exports.import = Import;
 module.exports.get = get;
 module.exports.update = update;
 module.exports.remove = remove;
@@ -119,6 +121,72 @@ async function create(event, tournament_uuid, player){
     } catch (error) {
         console.log(error);
     }
+}
+
+async function Import(event, tournament_uuid, player, is_import = false) {
+  try {
+    let rounds_out = [];
+    let tournament_request = await TournamentsController.get(null, tournament_uuid);
+    if (tournament_request.ok === 1) {
+      if (tournament_request.tournament.tournament_type === "SWISS") {
+        for (let i = 1; i < tournament_request.tournament.rounds_number; i++) {
+          rounds_out[i] = {
+            status: true,
+            points: 0,
+            not_registered: false
+          }
+        }
+        let last_round_request = await RoundsController.getLastRound(null, tournament_uuid);
+        if (last_round_request.ok === 1) {
+          for (let i = 1; i <= last_round_request.round.number; i++) {
+            if (rounds_out[i]) {
+              rounds_out[i].status = false;
+              rounds_out[i].not_registered = true;
+            } else {
+              rounds_out[i] = {
+                status: false,
+                points: 0,
+                not_registered: true
+              }
+            }
+            console.log(i);
+          }
+        }
+      }
+    }
+    let resultadoCreate = await Players.create({
+      uuid: (player.uuid) ? player.uuid : uuid(),
+      name: player.name,
+      city: player.city,
+      club: player.club,
+
+      start_number: (await getLastNumber(tournament_uuid)) + 1,
+
+      borndate: (player.borndate) ? dateHelper.convertToSql(player.borndate) : null,
+
+      int_id: player.int_id,
+      int_rating: player.int_rating,
+
+      xz_id: player.xz_id,
+      xz_rating: player.xz_rating,
+
+      nat_id: player.nat_id,
+      nat_rating: player.nat_rating,
+
+      fide_id: player.fide_id,
+      fide_rating: player.fide_rating,
+
+      rounds_out: rounds_out,
+
+      categoryUuid: player.category_uuid,
+      tournamentUuid: tournament_uuid,
+    })
+    // console.log(resultadoCreate);
+
+    return { ok: 1, error: 0, data: { uuid: resultadoCreate.uuid } };
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function listAll() {
@@ -315,9 +383,11 @@ async function get(e,uuid) {
   try {
     let player = await Players.findByPk(uuid);
 
-    let category_get = await CategoriesController.get(null,player.categoryUuid);
 
-    return { ok: 1, error: 0, player: await PlayerDTO.convertToExport(player) };
+    if (player) {
+      return { ok: 1, error: 0, player: await PlayerDTO.convertToExport(player) };
+    }
+    return { ok: 0, error: 1, message: "Jogador não encontrado" }
   } catch (error) {
       console.log(error);
   }
@@ -373,7 +443,7 @@ async function getLastNumber(tournament_uuid){
   return 0;
 }
 
-async function remove(e,uuid) {
+async function remove(e,uuid, is_delete_event = false) {
   try {
     // console.log(uuid);
     let player = await Players.findByPk(uuid);
@@ -385,7 +455,7 @@ async function remove(e,uuid) {
         }
       });
       if(rows === 1){
-        ipcMain.emit("controller.tournaments.need_export", player.tournamentUuid);
+        if (!is_delete_event) ipcMain.emit("controller.tournaments.need_export", player.tournamentUuid);
         return { ok: 1, error: 0 };
       }else{
         return { ok: 0, error: 1, message: "Erro ainda desconhecido" };

@@ -41,6 +41,7 @@ module.exports.listAll = listAll;
 module.exports.listByRound = listFromRound;
 module.exports.listFromRound = listFromRound;
 module.exports.create = create;
+module.exports.import = Import;
 module.exports.get = get;
 module.exports.update = update;
 module.exports.remove = remove;
@@ -143,6 +144,31 @@ async function create(event, round_uuid, pairing, tournament = null){
         console.log(error);
     }
 }
+async function Import(event, round_uuid, pairing, tournament = null) {
+  // console.log("PairingsController.create");
+  // console.log(pairing);
+  try {
+    let resultadoCreate;
+      resultadoCreate = await Pairings.create({
+        uuid: pairing.uuid,
+        number: pairing.number,
+        player_a_uuid: pairing.player_a_uuid,
+        player_a_result: pairing.player_a_result,
+        player_a_wo: pairing.player_a_wo,
+        player_b_uuid: pairing.player_b_uuid,
+        player_b_result: pairing.player_b_result,
+        player_b_wo: pairing.player_b_wo,
+        have_result: pairing.have_result,
+        is_bye: pairing.is_bye,
+
+        roundUuid: round_uuid,
+      })
+    // console.log(resultadoCreate);
+    return { ok: 1, error: 0, data: { uuid: resultadoCreate.uuid } };
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 async function listAll() {
   try {
@@ -229,7 +255,7 @@ async function get(e,uuid) {
     if(pairing){
       return { ok: 1, error: 0, pairing: await PairingDTO.convertToExport(pairing) };
     }
-
+    return {ok:0,error:1,message:"Emparceiramento não encontrado"}
   } catch (error) {
       console.log(error);
   }
@@ -247,7 +273,6 @@ async function update(e,pairing,has_result = false){
         player_b_wo: pairing.player_b_wo,
         have_result: pairing.have_result,
         is_bye: pairing.is_bye,
-        round_uuid: pairing.roundUuid,
       }, {
         where: {
           uuid: pairing.uuid
@@ -264,7 +289,6 @@ async function update(e,pairing,has_result = false){
         player_b_wo: pairing.player_b_wo,
         have_result: pairing.have_result,
         is_bye: pairing.is_bye,
-        round_uuid: pairing.roundUuid,
       }, {
         where:{
           uuid:pairing.uuid

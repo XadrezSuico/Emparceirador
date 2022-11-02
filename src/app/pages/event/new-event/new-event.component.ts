@@ -4,6 +4,8 @@ import { Component, OnInit } from '@angular/core';
 import { ElectronService } from '../../../core/services';
 import { Router } from '@angular/router';
 
+import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-new-event',
   templateUrl: './new-event.component.html',
@@ -37,18 +39,57 @@ export class NewEventComponent implements OnInit {
     this.xadrezsuico = xs_file_factory.create();
 
     this.electronService.ipcRenderer.send("set-title", "Novo Evento");
+
+    this.electronService.ipcRenderer.on("controllers.events.created",(_event,value) => {
+      console.log(value);
+      if(value.ok === 1){
+        console.log("/event/".concat(value.data.uuid).concat("/dashboard"));
+        setTimeout(()=>{
+          this.router.navigate(["/?elec_route=event/".concat(value.data.uuid).concat("/dashboard")]);
+        },500);
+      }
+    });
+
+
+    this.electronService.ipcRenderer.on("controllers.events.selectedFile",(_event,value) => {
+      this.xadrezsuico.file_path = value;
+    });
   }
 
   ngOnInit() {
   }
 
   async save(){
-    let retorno = await this.electronService.ipcRenderer.invoke("controller.events.create", this.xadrezsuico);
-    console.log(retorno);
+    if(this.xadrezsuico.file_path){
+      let retorno = await this.electronService.ipcRenderer.invoke("controller.events.create", this.xadrezsuico);
+      console.log(retorno);
 
-    if(retorno.ok == 1){
+      if(retorno.ok == 1){
+        Swal.fire({
+          title: 'Sucesso!',
+          text: 'Evento criado com sucesso!',
+          icon: 'success',
+          confirmButtonText: 'Fechar',
+          toast: true,
+          position: 'top-right',
+          timer: 3000,
+          timerProgressBar: true,
+        });
         this.router.navigate(["/event/".concat(retorno.data.uuid).concat("/dashboard")]);
+      }
+    }else{
+      Swal.fire({
+        title: 'Erro!',
+        text: "Para salvar o evento é necessário escolher o local para salvar o arquivo.",
+        icon: 'error',
+        confirmButtonText: 'Fechar'
+      });
     }
+  }
+
+
+  async openSaveDialog(){
+    await this.electronService.ipcRenderer.invoke("controller.import-export.save_file_dialog","controllers.events.selectedFile");
   }
 
 }

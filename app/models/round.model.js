@@ -6,7 +6,11 @@ const Tournaments = require('./tournament.basic.model');
 
 Rounds.belongsTo(Tournaments)
 
-Rounds.hasMany(Pairings)
-Rounds.hasMany(Standings)
+Rounds.hasMany(Pairings,{
+  onDelete:"CASCADE"
+})
+Rounds.hasMany(Standings,{
+  onDelete:"CASCADE"
+})
 
 module.exports = Rounds;

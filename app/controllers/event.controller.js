@@ -1,7 +1,16 @@
+const { BrowserWindow } = require('electron');
+
+const { uuid } = require('uuidv4');
+
+
 const database = require('../db/db');
 const Events = require('../models/event.model');
 
+const ImportExportController = require("./import-export.controller");
+const EventDeleteController = require("./event-delete.controller");
+
 const dateHelper = require("../helpers/date.helper");
+const { ipcMain } = require('electron');
 
 module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.events.listAll', listAll)
@@ -10,23 +19,69 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.events.get', get)
   ipcMain.handle('controller.events.update', update)
   ipcMain.handle('controller.events.remove', remove)
+  ipcMain.handle('controller.events.delete', remove)
+
+  ipcMain.addListener("controller.events.need_export", need_export);
 }
 
-async function create(event, xadrezsuico){
-  try {
-        await database.sync();
+module.exports.get = get
+module.exports.create = create
+module.exports.import = Import
+module.exports.update = update
+module.exports.remove = remove
+module.exports.listAll = listAll
 
-        const resultadoCreate = await Events.create({
-            name: xadrezsuico.name,
-            date_start: dateHelper.convertToSql(xadrezsuico.date_start),
-            date_finish: dateHelper.convertToSql(xadrezsuico.date_finish),
-            time_control: xadrezsuico.time_control,
-            place: xadrezsuico.place,
-        })
-        return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
-    } catch (error) {
-        console.log(error);
-    }
+async function need_export(event_uuid) {
+  let event_request = await get(null, event_uuid);
+  if (event_request.ok === 1) {
+    ipcMain.emit("controller.import-export.export_event", event_uuid);
+  }
+}
+
+async function create(e, event, is_import = false){
+  try {
+    await database.sync();
+
+    console.log("create event");
+    console.log(event);
+
+    const resultadoCreate = await Events.create({
+        name: event.name,
+        date_start: dateHelper.convertToSql(event.date_start),
+        date_finish: dateHelper.convertToSql(event.date_finish),
+        time_control: event.time_control,
+        place: event.place,
+        file_path: event.file_path,
+    })
+
+    ipcMain.emit("controller.import-export.export_event",resultadoCreate.uuid);
+
+    return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
+  } catch (error) {
+      console.log(error);
+  }
+}
+
+async function Import(e, event) {
+  try {
+    await database.sync();
+
+    console.log(event);
+
+    const resultadoCreate = await Events.create({
+      uuid: (event.uuid) ? event.uuid : uuid(),
+      name: event.name,
+      date_start: dateHelper.convertToSql(event.date_start),
+      date_finish: dateHelper.convertToSql(event.date_finish),
+      time_control: event.time_control,
+      place: event.place,
+      file_path: event.file_path,
+    })
+
+    return { ok: 1, error: 0, data: { uuid: resultadoCreate.uuid } };
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function createExample(){
@@ -61,6 +116,7 @@ async function listAll() {
         date_finish: dateHelper.convertToBr(event.date_finish),
         place: event.place,
         time_control: event.time_control,
+        file_path: event.file_path,
       };
 
       events_return[i++] = event_return;
@@ -76,19 +132,26 @@ async function get(e,uuid) {
   try {
     const event = await Events.findByPk(uuid);
 
-    let event_return = {
-      uuid: event.uuid,
-      name: event.name,
-      date_start: dateHelper.convertToBr(event.date_start),
-      date_finish: dateHelper.convertToBr(event.date_finish),
-      place: event.place,
-      time_control: event.time_control
-    };
+    if(event){
 
-    return {ok:1,error:0,event:event_return};
+      let event_return = {
+        uuid: event.uuid,
+        name: event.name,
+        date_start: dateHelper.convertToBr(event.date_start),
+        date_finish: dateHelper.convertToBr(event.date_finish),
+        place: event.place,
+        time_control: event.time_control,
+        file_path: event.file_path,
+      };
+
+      return { ok: 1, error: 0, event: event_return };
+    }else{
+      return { ok: 0, error: 1, message: "Evento não encontrado", not_found: true };
+    }
   } catch (error) {
       console.log(error);
   }
+  return { ok: 0, error: 1, message: "Erro ainda desconhecido", not_found: false };
 }
 
 
@@ -99,13 +162,16 @@ async function update(e,event){
       date_start: dateHelper.convertToSql(event.date_start),
       date_finish: dateHelper.convertToSql(event.date_finish),
       place: event.place,
-      time_control: event.time_control
+      time_control: event.time_control,
+      file_path: event.file_path,
       },{
         where:{
           uuid:event.uuid
         }
       })
-      // console.log(resultado);
+    // console.log(resultado);
+
+      ipcMain.emit("controller.import-export.export_event", event.uuid);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);
@@ -117,11 +183,7 @@ async function remove(e,uuid) {
     let event = await Events.findByPk(uuid);
 
     if(event){
-      Events.destroy({
-        where: {
-          uuid: uuid
-        }
-      });
+      await EventDeleteController.remove(uuid);
       return {ok:1,error:0};
     }else{
       return {ok:0,error:1,message:"Evento não encontrado"};

@@ -1,5 +1,8 @@
 const database = require('../db/db');
 const Categories = require('../models/category.model');
+const { ipcMain } = require('electron');
+
+const { uuid } = require('uuidv4');
 
 const dateHelper = require("../helpers/date.helper");
 
@@ -12,16 +15,26 @@ module.exports.setEvents = (ipcMain) => {
   ipcMain.handle('controller.categories.get', get)
   ipcMain.handle('controller.categories.update', update)
   ipcMain.handle('controller.categories.remove', remove)
+
+  ipcMain.addListener("controller.categories.need_export", need_export);
 }
 
 module.exports.create = create;
+module.exports.import = Import;
 module.exports.listAll = listAll;
 module.exports.listFromTournament = listFromTournament;
 module.exports.get = get;
 module.exports.update = update;
 module.exports.remove = remove;
 
-async function create(event, tournament_uuid, category){
+async function need_export(category_uuid){
+  let category_request = await get(null,category_uuid);
+  if (category_request.ok === 1) {
+    ipcMain.emit("controller.tournaments.need_export", category_request.category.tournament_uuid);
+  }
+}
+
+async function create(event, tournament_uuid, category, is_import = false){
   try {
       let resultadoCreate = await Categories.create({
         name: category.name,
@@ -30,10 +43,29 @@ async function create(event, tournament_uuid, category){
         tournamentUuid: tournament_uuid,
       })
       // console.log(resultadoCreate);
+
+      need_export(resultadoCreate.uuid);
       return {ok:1,error:0,data:{uuid:resultadoCreate.uuid}};
     } catch (error) {
         console.log(error);
     }
+}
+
+async function Import(event, tournament_uuid, category) {
+  try {
+    let resultadoCreate = await Categories.create({
+      uuid: (category.uuid) ? category.uuid : uuid(),
+      name: category.name,
+      abbr: category.abbr,
+
+      tournamentUuid: tournament_uuid,
+    })
+    // console.log(resultadoCreate);
+
+    return { ok: 1, error: 0, data: { uuid: resultadoCreate.uuid } };
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 async function listAll() {
@@ -89,6 +121,7 @@ async function get(e,uuid) {
   try {
     let category = await Categories.findByPk(uuid);
 
+    if (category) {
       let category_return = {
         uuid: category.uuid,
         name: category.name,
@@ -97,7 +130,9 @@ async function get(e,uuid) {
         tournament_uuid: category.tournamentUuid,
       };
 
-    return {ok:1,error:0,category:category_return};
+      return { ok: 1, error: 0, category: category_return };
+    }
+    return { ok: 0, error: 1, message: "Categoria não encontrada" }
   } catch (error) {
       console.log(error);
   }
@@ -114,13 +149,14 @@ async function update(e,category){
         }
       })
       // console.log(resultado);
+      need_export(category.uuid);
       return {ok:1,error:0};
     } catch (error) {
         console.log(error);
     }
 
 }
-async function remove(e,uuid) {
+async function remove(e, uuid, is_delete_event = false) {
   try {
     let category = await Categories.findByPk(uuid);
 
@@ -130,6 +166,7 @@ async function remove(e,uuid) {
           uuid: uuid
         }
       });
+      if (!is_delete_event) ipcMain.emit("controller.tournaments.need_export", category.tournamentUuid);
       return {ok:1,error:0};
     }else{
       return {ok:0,error:1,message:"Categoria não encontrada"};

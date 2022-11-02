@@ -7,9 +7,17 @@ const Events = require('./event.basic.model');
 
 Tournaments.belongsTo(Events)
 
-Tournaments.hasMany(Players)
-Tournaments.hasMany(Rounds)
-Tournaments.hasMany(Standings)
-Tournaments.hasMany(Categories)
+Tournaments.hasMany(Players,{
+  onDelete:"CASCADE"
+})
+Tournaments.hasMany(Rounds,{
+  onDelete:"CASCADE"
+})
+Tournaments.hasMany(Standings,{
+  onDelete:"CASCADE"
+})
+Tournaments.hasMany(Categories,{
+  onDelete:"CASCADE"
+})
 
 module.exports = Tournaments;

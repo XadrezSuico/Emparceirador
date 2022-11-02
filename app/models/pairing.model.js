@@ -6,11 +6,13 @@ Pairings.belongsTo(Rounds)
 
 Pairings.belongsTo(Players,{
   foreignKey: "player_a_uuid",
-  as: "player_a"
+  as: "player_a",
+  onDelete:"CASCADE"
 })
 Pairings.belongsTo(Players,{
   foreignKey: "player_b_uuid",
-  as: "player_b"
+  as: "player_b",
+  onDelete:"CASCADE"
 })
 
 

@@ -74,3 +74,33 @@ module.exports.convertToImport = async (player) => {
   //   temporary_tournament_info: player.temporary_tournament_info,
   // }
 }
+
+module.exports.convertToFile = async (player) => {
+  return {
+    uuid: player.uuid,
+    start_number: player.start_number,
+    name: player.name,
+    city: player.city,
+    club: player.club,
+    category_uuid: (player.category) ? player.category.uuid : null,
+
+    borndate: (player.borndate) ? player.borndate : null,
+
+    int_id: player.int_id,
+    int_rating: player.int_rating,
+
+    xz_id: player.xz_id,
+    xz_rating: player.xz_rating,
+
+    nat_id: player.nat_id,
+    nat_rating: player.nat_rating,
+
+    fide_id: player.fide_id,
+    fide_rating: player.fide_rating,
+
+    category_uuid: player.category_uuid,
+    tournament_uuid: player.tournament_uuid,
+
+    rounds_out: (player.rounds_out) ? player.rounds_out : [],
+  }
+}

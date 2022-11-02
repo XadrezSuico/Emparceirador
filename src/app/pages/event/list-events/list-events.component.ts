@@ -1,5 +1,6 @@
+import { Router } from '@angular/router';
 import { XadrezSuicoFile } from './../../../_interfaces/_file/xs-file';
-import { Component, OnInit } from '@angular/core';
+import { Component, NgZone, OnInit } from '@angular/core';
 import { ElectronService } from '../../../core/services';
 
 import Swal from "sweetalert2";
@@ -13,33 +14,54 @@ export class ListEventsComponent implements OnInit {
 
   events:Array<XadrezSuicoFile>
   constructor(
-    private electronService: ElectronService
+    private electronService: ElectronService,
+    private router: Router,
+    private zone: NgZone
   ) {
 
-    this.electronService.ipcRenderer.on("controllers.events.imported",(_event,value) => {
-      console.log(value);
-      if(value.ok === 1){
-        alert(1);
-      }
-    });
-    this.electronService.ipcRenderer.on("controllers.events.import.confirm",(_event,value) => {
-      let html = value.message;
-      Swal.fire({
-        title: 'Confirmação',
-        html: html,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sim',
-        cancelButtonText: 'Não'
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          this.import(value.confirmed,"import_event",value.file_path);
-        }
-      })
-    });
+    // this.electronService.ipcRenderer.on("controllers.events.imported",(_event,value) => {
+    //   console.log(value);
+
+    //   this.zone.run(() => {
+    //     this.getEvents();
+    //   });
+
+    //   Swal.fire({
+    //     title: 'Confirmação',
+    //     html: "Evento importado. Deseja abrir o evento?",
+    //     icon: 'warning',
+    //     showCancelButton: true,
+    //     confirmButtonColor: '#3085d6',
+    //     cancelButtonColor: '#d33',
+    //     confirmButtonText: 'Sim',
+    //     cancelButtonText: 'Não'
+    //   })
+    //   .then((result) => {
+    //     if (result.isConfirmed) {
+    //       this.zone.run(() => {
+    //         this.router.navigate(["/event/".concat(value.uuid).concat("/dashboard")]);
+    //       });
+    //     }
+    //   })
+    // });
+    // this.electronService.ipcRenderer.on("controllers.events.import.confirm",(_event,value) => {
+    //   let html = value.message;
+    //   Swal.fire({
+    //     title: 'Confirmação',
+    //     html: html,
+    //     icon: 'warning',
+    //     showCancelButton: true,
+    //     confirmButtonColor: '#3085d6',
+    //     cancelButtonColor: '#d33',
+    //     confirmButtonText: 'Sim',
+    //     cancelButtonText: 'Não'
+    //   })
+    //   .then((result) => {
+    //     if (result.isConfirmed) {
+    //       this.import(value.confirmed,"import_event",value.file_path);
+    //     }
+    //   })
+    // });
   }
 
   ngOnInit() {

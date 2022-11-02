@@ -1,8 +1,8 @@
-<app-event-nav></app-event-nav>
+<app-event-nav (event_imported_emitter)="getEvents()"></app-event-nav>
 <div class="content-box">
-  <div class="row">
+  <div class="row mt-1">
     <div class="col-md-12">
-      <button type="button" class="btn btn-success" (click)="import()">Importar Evento</button>
+      <button type="button" class="btn btn-success" (click)="getEvents()">Atualizar Lista de Eventos</button>
       <div class="card mt-1">
         <div class="card-header">
           Listar Eventos

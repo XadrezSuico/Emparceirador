@@ -40,6 +40,7 @@ function createWindow(): BrowserWindow {
       allowRunningInsecureContent: (serve),
       contextIsolation: false,  // false if you want to run e2e test with Spectron
     },
+    icon: __dirname + '/dist/assets/xs-e.png',
   }
 
   // Create the browser window.

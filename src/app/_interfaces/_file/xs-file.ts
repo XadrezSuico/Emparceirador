@@ -10,6 +10,7 @@ export interface XadrezSuicoFile{
   date_finish:string;
   time_control:TimeControl;
   place:string;
+  file_path:string;
 
   tournaments:Array<Tournament>;
 }

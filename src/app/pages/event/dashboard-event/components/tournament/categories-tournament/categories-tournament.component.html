@@ -1,0 +1,44 @@
+<ng-template #categoryForm let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title" *ngIf="!category.uuid">Nova Categoria</h4>
+    <h4 class="modal-title" id="modal-basic-title" *ngIf="category.uuid">Editar Categoria</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <form #form="ngForm" (ngSubmit)="save()">
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="name">Nome:</label>
+        <input type="text" name="name" id="name" class="form-control" [(ngModel)]="category.name" />
+      </div>
+      <div class="form-group">
+        <label for="abbr">Abreviação:</label>
+        <input type="text" name="abbr" id="abbr" class="form-control" [(ngModel)]="category.abbr" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" class="btn btn-outline-dark">Salvar</button>
+    </div>
+  </form>
+</ng-template>
+
+
+<button class="btn btn-outline-primary" (click)="new_category(categoryForm)">Nova Categoria</button>
+<table class="table table-striped" *ngIf="categories">
+  <thead>
+    <tr>
+      <th scope="col">Nome</th>
+      <th scope="col">Abreviação</th>
+      <th scope="col">Opções</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let category of categories">
+      <td>{{category.name}}</td>
+      <td>{{category.abbr}}</td>
+      <td>
+        <button class="btn btn-outline-primary" (click)="get(categoryForm,category.uuid)">Editar</button>
+        <button class="btn btn-outline-danger" (click)="remove(category.uuid)">Apagar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

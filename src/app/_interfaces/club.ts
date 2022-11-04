@@ -1,5 +1,5 @@
 export interface Club{
-  uuid:string;
+  uuid?:string;
   id?:number;
-  name:string;
+  name?:string;
 }

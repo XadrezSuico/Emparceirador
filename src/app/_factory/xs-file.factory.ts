@@ -14,6 +14,7 @@ export class XadrezSuicoFileFactory{
       date_finish:"",
       time_control:TimeControl.RPD,
       place:"",
+      file_path:"",
 
       tournaments:[]
     }

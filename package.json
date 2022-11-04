@@ -1,11 +1,11 @@
 {
-  "name": "angular-electron",
-  "version": "11.2.0",
-  "description": "Angular 14 with Electron 19 (Typescript + SASS + Hot Reload)",
+  "name": "xadrezsuico-emparceirador",
+  "version": "0.0.1",
+  "description": "Sistema de Emparceiramento de Xadrez",
   "homepage": "https://github.com/maximegris/angular-electron",
   "author": {
-    "name": "Maxime GRIS",
-    "email": "maxime.gris@gmail.com"
+    "name": "Joao Paulo Polles",
+    "email": "joaopaulopolles@gmail.com"
   },
   "keywords": [
     "angular",
@@ -34,7 +34,7 @@
     "electron": "electron",
     "electron:serve-tsc": "tsc -p tsconfig.serve.json",
     "electron:serve": "wait-on tcp:4200 && npm run electron:serve-tsc && electron . --serve",
-    "electron:local": "npm run build:prod && electron .",
+    "electron:local": "npm run build:dev && electron .",
     "electron:build": "npm run build:prod && electron-builder build --publish=never",
     "test": "ng test --watch=false",
     "test:watch": "ng test",
@@ -53,6 +53,7 @@
     "@angular/platform-browser": "14.2.6",
     "@angular/platform-browser-dynamic": "14.2.6",
     "@angular/router": "14.2.6",
+    "@electron/remote": "2.0.8",
     "@fortawesome/angular-fontawesome": "0.11.1",
     "@fortawesome/fontawesome-svg-core": "~1.2.36",
     "@fortawesome/free-brands-svg-icons": "^5.15.4",
@@ -61,10 +62,14 @@
     "@ng-bootstrap/ng-bootstrap": "13.0.0",
     "@popperjs/core": "^2.10.2",
     "bootstrap": "^5.2.0",
+    "electron-pdf": "20.0.0",
+    "jspdf": "2.5.1",
     "ngx-mask": "14.2.3",
     "rxjs": "7.5.7",
     "sqlite3": "5.1.2",
+    "sweetalert2": "11.6.2",
     "tslib": "^2.4.0",
+    "uuidv4": "6.2.13",
     "zone.js": "~0.11.8"
   },
   "devDependencies": {

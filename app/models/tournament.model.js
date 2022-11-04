@@ -1,28 +1,23 @@
-const Sequelize = require('sequelize');
-const database = require('../db/db');
+const Categories = require('./category.basic.model');
+const Players = require('./player.basic.model');
+const Rounds = require('./round.basic.model');
+const Standings = require('./standing.basic.model');
+const Tournaments = require('./tournament.basic.model');
+const Events = require('./event.basic.model');
 
-const Tournaments = database.define('tournaments', {
-  id: {
-    type: Sequelize.INTEGER,
-    allowNull: true
-  },
-  uuid: {
-    type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
-    primaryKey: true,
-  },
-  name: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  tournament_type: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  rounds_number: {
-    type: Sequelize.INTEGER,
-    allowNull: true
-  },
+Tournaments.belongsTo(Events)
+
+Tournaments.hasMany(Players,{
+  onDelete:"CASCADE"
+})
+Tournaments.hasMany(Rounds,{
+  onDelete:"CASCADE"
+})
+Tournaments.hasMany(Standings,{
+  onDelete:"CASCADE"
+})
+Tournaments.hasMany(Categories,{
+  onDelete:"CASCADE"
 })
 
 module.exports = Tournaments;

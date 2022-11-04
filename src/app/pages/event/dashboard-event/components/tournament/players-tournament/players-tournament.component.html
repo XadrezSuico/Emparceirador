@@ -1,0 +1,230 @@
+<ng-template #playerForm let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title" *ngIf="!player.uuid">Novo Jogador</h4>
+    <h4 class="modal-title" id="modal-basic-title" *ngIf="player.uuid">Editar Jogador</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <form #form="ngForm" (ngSubmit)="save()">
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="name">Nome:</label>
+        <input type="text" name="name" id="name" class="form-control" [(ngModel)]="player.name" />
+      </div>
+      <div class="form-group">
+        <label for="borndate">Data de Nascimento:</label>
+        <input type="text" name="borndate" id="borndate" class="form-control" [(ngModel)]="player.borndate"
+          mask="00/00/0000" [dropSpecialCharacters]="false" />
+      </div>
+        <div class="form-group">
+          <label for="category">Categoria:</label>
+          <select name="category" id="category" class="form-select" [(ngModel)]="player.category_uuid">
+            <option value="">-- Selecione --</option>
+            <option value="{{cat.uuid}}" *ngFor="let cat of categories">{{cat.name}} ({{cat.abbr}})</option>
+          </select>
+        </div>
+      <hr/>
+      <h5>Cidade:</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="city_uuid">UUID:</label>
+            <input type="text" name="city_uuid" id="city_uuid" class="form-control" [(ngModel)]="player.city.uuid" />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="city_name">Nome:</label>
+            <input type="text" name="city_name" id="city_name" class="form-control" [(ngModel)]="player.city.name" />
+          </div>
+        </div>
+      </div>
+      <hr/>
+      <h5>Clube:</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="club_uuid">UUID:</label>
+            <input type="text" name="club_uuid" id="club_uuid" class="form-control" [(ngModel)]="player.club.uuid" />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="club_name">Nome:</label>
+            <input type="text" name="club_name" id="club_name" class="form-control" [(ngModel)]="player.club.name" />
+          </div>
+        </div>
+      </div>
+      <hr/>
+      <h5>Rating Interno:</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="int_id">ID:</label>
+            <input type="text" name="int_id" id="int_id" class="form-control" [(ngModel)]="player.int_id" />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="int_rating">Rating:</label>
+            <input type="text" name="int_rating" id="int_rating" class="form-control" [(ngModel)]="player.int_rating" />
+          </div>
+        </div>
+      </div>
+      <hr/>
+      <h5>Rating XadrezSuíço:</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="xz_id">ID:</label>
+            <input type="text" name="xz_id" id="xz_id" class="form-control" [(ngModel)]="player.xz_id" />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="xz_rating">Rating:</label>
+            <input type="text" name="xz_rating" id="xz_rating" class="form-control" [(ngModel)]="player.xz_rating" />
+          </div>
+        </div>
+      </div>
+      <hr/>
+      <h5>Rating Nacional:</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="nat_id">ID:</label>
+            <input type="text" name="nat_id" id="nat_id" class="form-control" [(ngModel)]="player.nat_id" />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="nat_rating">Rating:</label>
+            <input type="text" name="nat_rating" id="nat_rating" class="form-control" [(ngModel)]="player.nat_rating" />
+          </div>
+        </div>
+      </div>
+      <hr/>
+      <h5>Rating FIDE:</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="fide_id">ID:</label>
+            <input type="text" name="fide_id" id="fide_id" class="form-control" [(ngModel)]="player.fide_id" />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="fide_rating">Rating:</label>
+            <input type="text" name="fide_rating" id="fide_rating" class="form-control" [(ngModel)]="player.fide_rating" />
+          </div>
+        </div>
+      </div>
+      <div *ngIf="player.uuid && tournament.tournament_type === 'SWISS'">
+        <h5>Rodadas Habilitadas para Este Jogador:</h5>
+        <ul>
+          <li *ngFor="let round_number of counter(tournament.rounds_number,false) let i = index">
+            <button type="button"
+              class="btn btn-danger btn-functions"
+              (click)="changePlayerRoundEnabled(i+1)"
+              [disabled]="last_round_number >= i+1"
+              *ngIf="!playerRoundEnabled(i+1)">
+
+              <fa-icon [icon]="icon_x"></fa-icon> {{i+1}}
+
+            </button>
+            <button type="button"
+              class="btn btn-success btn-functions"
+              (click)="changePlayerRoundEnabled(i+1)"
+              [disabled]="last_round_number >= i+1"
+              *ngIf="playerRoundEnabled(i+1)">
+
+              <fa-icon [icon]="icon_check"></fa-icon> {{i+1}}
+
+            </button>
+            <span *ngIf="!playerRoundEnabled(i+1)">Pontos Bye: </span>
+            <div class="btn-group" role="group" aria-label="Basic example" *ngIf="!playerRoundEnabled(i+1)">
+              <button type="button" class="btn btn-success" disabled="disabled"
+              [disabled]="last_round_number >= i+1"   *ngIf="!playerRoundPoints(i+1)">
+                0 pts
+              </button>
+              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,0)"
+              [disabled]="last_round_number >= i+1"   *ngIf="playerRoundPoints(i+1)">
+                0 pts
+              </button>
+              <button type="button" class="btn btn-success" disabled="disabled"
+              [disabled]="last_round_number >= i+1"   *ngIf="playerRoundPoints(i+1) === 0.5">
+                0.5 pts
+              </button>
+              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,0.5)"
+              [disabled]="last_round_number >= i+1"   *ngIf="!(playerRoundPoints(i+1) === 0.5)">
+                0.5 pts
+              </button>
+              <button type="button" class="btn btn-success" disabled="disabled"
+                [disabled]="last_round_number >= i+1" *ngIf="playerRoundPoints(i+1) === 1">
+                1 pts
+              </button>
+              <button type="button" class="btn btn-danger" (click)="changePlayerRoundPoints(i+1,1)"
+                [disabled]="last_round_number >= i+1" *ngIf="!(playerRoundPoints(i+1) === 1)">
+                1 pts
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" class="btn btn-outline-dark">Salvar</button>
+    </div>
+  </form>
+</ng-template>
+
+
+<button class="btn btn-outline-primary btn-functions" (click)="new_player(playerForm)">Novo Jogador</button>
+<button class="btn btn-outline-primary btn-functions" (click)="reorderPlayers()">Reordenar Jogadores</button>
+<button class="btn btn-outline-primary btn-functions" (click)="printReport()">Imprimir Lista</button>
+
+<div #printDiv>
+  <table class="table table-striped" *ngIf="players">
+    <thead>
+      <tr>
+        <th scope="col">No. Inicial</th>
+        <th scope="col">Nome</th>
+        <th scope="col">Data de Nascimento</th>
+        <th scope="col">Categoria</th>
+        <th scope="col">Rating<br />Interno</th>
+        <th scope="col">Rating<br />XadrezSuíço</th>
+        <th scope="col">Rating<br />Nacional</th>
+        <th scope="col">Rating<br />FIDE</th>
+        <th scope="col">Cidade</th>
+        <th scope="col">Clube</th>
+        <th scope="col">Opções</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let player of players">
+        <td>{{player.start_number}}</td>
+        <td>{{player.name}}</td>
+        <td>{{player.borndate}}</td>
+
+        <td *ngIf="player.category">{{player.category.name}}</td>
+        <td *ngIf="!player.category">-</td>
+
+        <td>{{player.int_rating}}</td>
+        <td>{{player.xz_rating}}</td>
+        <td>{{player.nat_rating}}</td>
+        <td>{{player.fide_rating}}</td>
+        <td>
+          <span *ngIf="player.city">{{player.city.name}}</span>
+          <span *ngIf="!player.city">-</span>
+        </td>
+        <td>
+          <span *ngIf="player.club">{{player.club.name}}</span>
+          <span *ngIf="!player.club">-</span>
+        </td>
+        <td>
+          <button class="btn btn-outline-primary btn-functions" (click)="get(playerForm,player.uuid)">Editar</button>
+          <button class="btn btn-outline-danger btn-functions" (click)="showRemoveModal(player)">Apagar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

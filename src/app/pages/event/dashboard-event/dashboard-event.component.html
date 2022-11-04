@@ -1,5 +1,45 @@
+<div class="requesting-overlay" *ngIf="is_requesting">
+  <fa-icon [icon]="faSyncAlt" [spin]="true" size="5x"></fa-icon>
+</div>
+<ng-template #eventForm let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Editar Evento</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <form #form="ngForm" (ngSubmit)="save()">
+    <div class="form-group">
+      <label for="name">Nome:</label>
+      <input type="text" name="name" id="name" class="form-control" [(ngModel)]="edit_event.name" />
+    </div>
+    <div class="form-group">
+      <label for="date_start">Data Inicial:</label>
+      <input type="text" name="date_start" id="date_start" class="form-control" [(ngModel)]="edit_event.date_start" mask="00/00/0000" [dropSpecialCharacters]="false" />
+    </div>
+    <div class="form-group">
+      <label for="date_finish">Data Final:</label>
+      <input type="text" name="date_finish" id="date_finish" class="form-control" [(ngModel)]="edit_event.date_finish" mask="00/00/0000" [dropSpecialCharacters]="false" />
+    </div>
+    <div class="form-group">
+      <label for="time_control">Controle de Tempo:</label>
+      <select name="time_control" id="time_control" class="form-select" [(ngModel)]="edit_event.time_control">
+        <option value="BTZ">Blitz/Relâmpago</option>
+        <option value="RPD">Rápido</option>
+        <option value="STD">Convencional</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="place">Local:</label>
+      <input type="text" name="place" id="place" class="form-control" [(ngModel)]="edit_event.place" />
+    </div>
+    <div class="modal-footer">
+      <button type="submit" class="btn btn-outline-dark">Salvar</button>
+    </div>
+  </form>
+</ng-template>
+
+
 <app-event-dashboard-nav></app-event-dashboard-nav>
-<div class="container">
+<div class="content-box">
   <div class="row">
     <div class="col-md-12">
       <div class="card mt-1">
@@ -16,7 +56,7 @@
             <h4>{{event.date_start}} - {{event.date_finish}}</h4>
             <p>Controle de Tempo:</p>
             <h4>{{getTimeControl()}}</h4>
-            <a routerLink="/event/{{event.uuid}}/edit" class="btn btn-success">Editar</a>
+            <button type="button" (click)="edit(eventForm)" class="btn btn-success">Editar</button>
           </div>
         </div>
       </div><div class="card mt-1" *ngIf="event">
@@ -24,7 +64,9 @@
           Administrar Torneios
         </div>
         <div class="card-body">
-          <app-tournaments [event_uuid]="event_uuid"></app-tournaments>
+          <app-tournaments
+            [event_uuid]="event_uuid"
+            (is_requesting_emmiter)="requestingChange($event)"></app-tournaments>
         </div>
       </div>
     </div>

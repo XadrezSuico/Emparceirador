@@ -1,12 +1,12 @@
 export enum Tiebreak{
-  XZT_001 = "Direct encounter",
+  XZT_001 = "XZT_001",
 
-  XZT_002 = "Total Buchholz",
-  XZT_003 = "Buchholz without better result",
-  XZT_004 = "Buchholz without worst result",
-  XZT_005 = "Buchholz without better and worst result",
+  XZT_002 = "XZT_002",
+  XZT_003 = "XZT_003",
+  XZT_004 = "XZT_004",
+  XZT_005 = "XZT_005",
 
-  XZT_006 = "Sonneborn-Berger",
+  XZT_006 = "XZT_006",
 
-  XZT_007 = "Arranz System"
+  XZT_007 = "XZT_007"
 }

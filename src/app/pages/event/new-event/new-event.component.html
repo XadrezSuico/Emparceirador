@@ -1,12 +1,12 @@
 <app-event-nav></app-event-nav>
-<div class="container">
+<div class="content-box">
   <div class="row">
     <div class="col-md-12">
       <div class="card mt-1">
         <div class="card-header">
           Novo Evento
         </div>
-        <form #form="ngForm">
+        <form #form="ngForm" (submit)="save()">
           <div class="card-body">
             <div class="form-group">
               <label for="name">Nome:</label>
@@ -19,6 +19,13 @@
             <div class="form-group">
               <label for="date_finish">Data Final:</label>
               <input type="text" name="date_finish" id="date_finish" class="form-control" [(ngModel)]="xadrezsuico.date_finish" mask="00/00/0000" [dropSpecialCharacters]="false" />
+            </div>
+            <div class="form-group">
+              <label for="file_path">Arquivo de Exportação:</label>
+              <div class="input-group mb-3">
+                <input type="text" name="file_path" id="file_path" class="form-control" [(ngModel)]="xadrezsuico.file_path" disabled />
+                <button class="btn btn-primary" type="button" (click)="openSaveDialog()">Definir Local para Salvar</button>
+              </div>
             </div>
             <div class="form-group">
               <label for="time_control">Controle de Tempo:</label>
@@ -34,7 +41,7 @@
             </div>
           </div>
           <div class="card-footer">
-            <button class="btn btn-primary" type="button" (click)="save()">Salvar</button>
+            <button class="btn btn-primary" type="submit">Salvar</button>
           </div>
         </form>
       </div>

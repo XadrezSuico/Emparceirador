@@ -1,0 +1,48 @@
+
+> angular-electron@11.2.0 electron:local D:\git\angular-electron
+> npm run build:dev && electron .
+
+
+> angular-electron@11.2.0 build:dev D:\git\angular-electron
+> npm run build -- -c dev
+
+
+> angular-electron@11.2.0 build D:\git\angular-electron
+> npm run electron:serve-tsc && ng build --base-href ./ "-c" "dev"
+
+
+> angular-electron@11.2.0 electron:serve-tsc D:\git\angular-electron
+> tsc -p tsconfig.serve.json
+
+
+Initial Chunk Files | Names         |  Raw Size
+main.js             | main          |   6.08 MB |
+styles.css          | styles        | 230.29 kB |
+polyfills.js        | polyfills     | 109.33 kB |
+runtime.js          | runtime       |  13.99 kB |
+
+| Initial Total |   6.42 MB
+
+Lazy Chunk Files    | Names         |  Raw Size
+404.js              | canvg         | 428.74 kB |
+195.js              | html2canvas   | 390.74 kB |
+17.js               | dompurify     |  63.11 kB |
+
+Build at: 2022-10-27T20:20:50.620Z - Hash: d22a00e2fba89231 - Time: 15454ms
+
+BrowserWindow {
+  setBounds: [Function (anonymous)],
+  _events: [Object: null prototype] {
+    blur: [Function (anonymous)],
+    focus: [Function (anonymous)],
+    show: [Function: visibilityChanged],
+    hide: [Function: visibilityChanged],
+    minimize: [Function: visibilityChanged],
+    maximize: [Function: visibilityChanged],
+    restore: [Function: visibilityChanged]
+  },
+  _eventsCount: 7,
+  devToolsWebContents: [Getter]
+}
+serve: no
+file:///D:/git/angular-electron/dist/index.html

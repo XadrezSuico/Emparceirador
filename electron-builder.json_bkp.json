@@ -1,0 +1,82 @@
+{
+  "asar": true,
+  "directories": {
+    "output": "release/"
+  },
+  "files": [
+    "**/*",
+    "!**/*.ts",
+    "!*.map",
+    "!package.json",
+    "!package-lock.json",
+    {
+      "from": "../dist",
+      "filter": ["**/*"]
+    }
+  ],
+  "__extraFiles": [
+    {
+      "from": "app/controllers",
+      "to": "controllers",
+      "filter": [
+        "**/*"
+      ]
+    },
+    {
+      "from": "app/db",
+      "to": "db",
+      "filter": [
+        "**/*"
+      ]
+    },
+    {
+      "from": "app/dto",
+      "to": "dto",
+      "filter": [
+        "**/*"
+      ]
+    },
+    {
+      "from": "app/helpers",
+      "to": "helpers",
+      "filter": [
+        "**/*"
+      ]
+    },
+    {
+      "from": "app/models",
+      "to": "models",
+      "filter": [
+        "**/*"
+      ]
+    },
+    {
+      "from": "app/node_modules",
+      "to": "node_modules",
+      "filter": [
+        "**/*"
+      ]
+    }
+  ],
+  "win": {
+    "icon": "dist/assets/icons",
+    "target": [
+      "portable"
+    ]
+  },
+  "portable": {
+    "splashImage": "dist/assets/icons/electron.bmp"
+  },
+  "mac": {
+    "icon": "dist/assets/icons",
+    "target": [
+      "dmg"
+    ]
+  },
+  "linux": {
+    "icon": "dist/assets/icons",
+    "target": [
+      "AppImage"
+    ]
+  }
+}

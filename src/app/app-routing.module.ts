@@ -4,6 +4,8 @@ import { PageNotFoundComponent } from './shared/components';
 
 import { HomeRoutingModule } from './home/home-routing.module';
 import { DetailRoutingModule } from './detail/detail-routing.module';
+import { PrintLayoutComponent } from './print/print-layout/print-layout.component';
+import { ListPlayersComponent } from './print/reports/list-players/list-players.component';
 
 const routes: Routes = [
   {
@@ -14,7 +16,7 @@ const routes: Routes = [
   {
     path: '**',
     component: PageNotFoundComponent
-  }
+  },
 ];
 
 @NgModule({

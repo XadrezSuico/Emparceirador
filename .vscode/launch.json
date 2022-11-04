@@ -10,7 +10,7 @@
             "request": "attach",
             "port": 9876,
             "url": "http://localhost:4200",
-            "sourceMaps": true,  
+            "sourceMaps": true,
             "timeout": 10000,
             "trace": "verbose",
             "sourceMapPathOverrides": {
@@ -35,7 +35,7 @@
                 "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
             },
             "preLaunchTask": "Build.Main"
-        }
+        },
     ],
     "compounds": [
         {

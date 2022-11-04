@@ -1,0 +1,16 @@
+footer{
+  text-align: center;
+}
+.print-container{
+  // padding-top: 20px;
+  // padding-left: 10px;
+  // padding-right: 10px;
+  // padding-bottom: 20px;
+}
+@page {
+  size: auto;
+  /* auto is the initial value */
+
+  /* this affects the margin in the printer settings */
+  margin: 20px 10px;
+}

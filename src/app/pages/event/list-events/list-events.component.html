@@ -1,7 +1,8 @@
-<app-event-nav></app-event-nav>
-<div class="container">
-  <div class="row">
+<app-event-nav (event_imported_emitter)="getEvents()"></app-event-nav>
+<div class="content-box">
+  <div class="row mt-1">
     <div class="col-md-12">
+      <button type="button" class="btn btn-success" (click)="getEvents()">Atualizar Lista de Eventos</button>
       <div class="card mt-1">
         <div class="card-header">
           Listar Eventos
@@ -22,7 +23,8 @@
                 <td>{{event.place}}</td>
                 <td>{{event.date_start}} - {{event.date_finish}}</td>
                 <td>
-                  <a routerLink="/event/{{event.uuid}}/dashboard" class="btn btn-success">Abrir</a>
+                  <a routerLink="/event/{{event.uuid}}/dashboard" class="btn btn-success btn-functions">Abrir</a>
+                  <button type="button" class="btn btn-danger btn-functions" (click)="openDeleteDialog(event)">Excluir</button>
                 </td>
               </tr>
             </tbody>

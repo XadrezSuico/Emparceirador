@@ -59,7 +59,7 @@ O sistema se baseia na ideia de eventos de xadrez, e não torneios como os outro
 
 Para o emparceiramento Suíço, atualmente é utilizado um pequeno algoritmo criado por mim, porém, que estarei alterando em breve, para uma biblioteca já existente ou então para algo mais robusto, visto que este ainda não atende os requisitos de evitar que um enxadrista jogue duas vezes com a mesma pessoa e também sobre evitar que jogue mais de duas vezes seguidas com a mesma cor.
 
-Quanto ao emparceiramento Todos-contra-todos, também conhecido como Round-robin ou Scüring, é utilizada a biblioteca [`robin.js`](https://github.com/pensierinmusica/robin-js), onde gera o emparceiramento do torneio como um todo para o sistema.
+Quanto ao emparceiramento Todos-contra-todos, também conhecido como Round-robin ou Schüring, é utilizada a biblioteca [`robin.js`](https://github.com/pensierinmusica/robin-js), onde gera o emparceiramento do torneio como um todo para o sistema.
 
 Há a ideia de implementar mais funcionalidades, dentre elas:
 - Mais critérios de desempate;

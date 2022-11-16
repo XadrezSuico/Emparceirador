@@ -71,4 +71,7 @@ Se quiser trabalhar no desenvolvimento, fique a vontade, efetue um _fork_ e pode
 
 Qualquer dúvida, pode contactar-me no telegram como [arroba]jppcel.
 
-Em breve devo criar um grupo para divulgar as novidades do XadrezSuíço Emparceirador.
+Para saber das novidades do XadrezSuíço Emparceirador, você pode entrar nos grupos:
+
+- Telegram: [@XadrezSuicoEmparceirador](https://t.me/+z4yuiwIuSt9hNjlh)
+- Whatsapp [https://chat.whatsapp.com/KJAKo2Bp09CGQC7xMq4RBN](https://chat.whatsapp.com/KJAKo2Bp09CGQC7xMq4RBN)

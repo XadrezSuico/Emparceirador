@@ -41,7 +41,7 @@ Há outros comandos existentes do projeto do _angular-electron_, porém, não re
 |--------------------------|-------------------------------------------------------------------------------------------------------|
 | `npm run ng:serve`       | Executa o front-end no navegador (Modo desenvolvedor)                                                         |
 | `npm run web:build`      | Efetua o _build_ do código-fonte do Front-end Angular para ser possível o uso diretamente no navegador. Os arquivos compilados estarão disponíveis na pasta /dist. |
-| `npm run electron:local` | Efetua o _build_ do código-fonte do Front-end Angular e inicia o Electron localmente. (RECOMANDADO)                                                    |
+| `npm run electron:local` | Efetua o _build_ do código-fonte do Front-end Angular e inicia o Electron localmente. (RECOMENDADO)                                                    |
 | `npm run electron:build` | fetua o _build_ do código-fonte do Front-end Angular e compila um aplicativo de acordo com o seu sistema operacional.                  |
 
 Para mais informações sobre o "core" do _angular-electron_ é possível obter no repositório do mesmo, acessível através [deste link](https://github.com/maximegris/angular-electron).

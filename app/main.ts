@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain, screen} from 'electron';
+import {app, BrowserWindow, ipcMain, screen, dialog} from 'electron';
 const PDFWindow = require('electron-pdf-window')
 import * as path from 'path';
 import * as fs from 'fs';
@@ -130,6 +130,28 @@ function createPdfWindow(): BrowserWindow {
   return window_to_PDF;
 }
 
+async function checkIfJavaExists(callback_error,callback_ok){
+    var spawn = require('child_process').spawn('java', ['-version']);
+    spawn.on('error', function(err){
+        return callback_error(err);
+    })
+    spawn.stderr.on('data', function(data) {
+        data = data.toString().split('\n')[0];
+        var javaVersion = new RegExp('version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
+        if (javaVersion != false) {
+          // TODO: We have Java installed
+          return callback_ok(javaVersion);
+        } else {
+          // TODO: No Java installed
+          return callback_error({message:"Para executar o XadrezSuíço Emparceirador é necessário que possua o Java instalado em seu computador. Por favor, instale e tente novamente."});
+        }
+    });
+}
+
+function checkIfJaVaFoIsDownloaded(){
+
+}
+
 function createShowPdfWindow() {
   const win = new PDFWindow(browser_window_opts)
 
@@ -207,28 +229,50 @@ try {
   // Some APIs can only be used after this event occurs.
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
   app.on('ready', async () => {
-    pdf_window = await createPdfWindow();
+
+    await checkIfJavaExists(
+      async (error)=>{
+        if(error.message){
+          dialog.showMessageBox(null,{
+            message:error.message,
+            type:"error",
+          });
+        }else{
+          dialog.showMessageBox(null,{
+            message:"Ocorreu um erro desconhecido",
+            type:"error",
+          });
+        }
+      },
 
 
-    setTimeout(async () =>{
-      ipcMain.on('set-title', setTitle)
-      event_controller.setEvents(ipcMain)
-      tournament_controller.setEvents(ipcMain)
-      category_controller.setEvents(ipcMain)
-      player_controller.setEvents(ipcMain, generateAndOpenPdf)
-      round_controller.setEvents(ipcMain)
-      pairing_controller.setEvents(ipcMain, generateAndOpenPdf)
-      standing_controller.setEvents(ipcMain, generateAndOpenPdf)
-      tiebreak_controller.setEvents(ipcMain)
-
-      import_export_controller.setEvents(ipcMain)
+      async (version)=>{
+        pdf_window = await createPdfWindow();
 
 
+        setTimeout(async () =>{
+          ipcMain.on('set-title', setTitle)
+          event_controller.setEvents(ipcMain)
+          tournament_controller.setEvents(ipcMain)
+          category_controller.setEvents(ipcMain)
+          player_controller.setEvents(ipcMain, generateAndOpenPdf)
+          round_controller.setEvents(ipcMain)
+          pairing_controller.setEvents(ipcMain, generateAndOpenPdf)
+          standing_controller.setEvents(ipcMain, generateAndOpenPdf)
+          tiebreak_controller.setEvents(ipcMain)
 
-      setTimeout(async () =>{
-        createWindow();
-      }, 400)
-    }, 400)
+          import_export_controller.setEvents(ipcMain)
+
+
+
+          setTimeout(async () =>{
+            createWindow();
+          }, 400)
+        }, 400)
+      }
+
+
+    );
   });
 
   // Quit when all windows are closed.
@@ -259,4 +303,10 @@ async function setTitle(event,title){
   }else{
     win.setTitle(title.concat(" - XadrezSuíço Emparceirador"))
   }
+}
+
+ipcMain.handle('app.version', getVersion);
+
+function getVersion(){
+  return app.getVersion();
 }

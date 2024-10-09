@@ -35,6 +35,9 @@ module.exports.setEvents = (ipcMain, generateAndOpenPdf) => {
   ipcMain.handle('controller.pairings.removeByRound', removeByRound)
   ipcMain.handle('controller.pairings.isAllPairingsWithResult', isAllPairingsWithResult)
   ipcMain.handle('controller.pairings.generateReport', generateReport)
+  ipcMain.handle('controller.pairings.getPairingsBetweenPlayers', getPairingsBetweenPlayers)
+  ipcMain.handle('controller.pairings.checkPairingExists', checkPairingExists)
+  ipcMain.handle('controller.pairings.checkPairingExistsForPlayer', checkPairingExistsForPlayer)
 }
 
 module.exports.listAll = listAll;
@@ -50,6 +53,9 @@ module.exports.removeByRounds = removeByRounds;
 module.exports.isAllPairingsWithResult = isAllPairingsWithResult;
 module.exports.listPlayerPairings = listPlayerPairings;
 module.exports.hasPlayersPlayed = hasPlayersPlayed;
+module.exports.getPairingsBetweenPlayers = getPairingsBetweenPlayers;
+module.exports.checkPairingExists = checkPairingExists;
+module.exports.checkPairingExistsForPlayer = checkPairingExistsForPlayer;
 
 
 async function need_export(pairing_uuid) {
@@ -507,3 +513,101 @@ async function generateReport(e, tournament_uuid, round_number) {
   }
   return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 }
+
+// Função para verificar se o jogador já foi emparelhado na rodada
+async function checkPairingExists(player_a_uuid, player_b_uuid, round_number, tournament_uuid) {
+  try {
+    const pairing = await Pairings.findOne({
+      where: {
+        number: round_number,
+        tournament_uuid: tournament_uuid,
+        [Op.or]: [
+          {
+            player_a_uuid: player_a_uuid,
+            player_b_uuid: player_b_uuid
+          },
+          {
+            player_a_uuid: player_b_uuid,
+            player_b_uuid: player_a_uuid
+          }
+        ]
+      }
+    });
+
+    return !!pairing; // Retorna true se o emparelhamento existir, caso contrário false
+  } catch (error) {
+    console.error('Erro ao verificar emparelhamento existente:', error);
+    throw new Error('Erro ao verificar emparelhamento');
+  }
+}
+// Função para verificar se o jogador já foi emparelhado na rodada
+async function checkPairingExistsForPlayer(player_uuid, round_uuid) {
+  try {
+    const pairing = await Pairings.findOne({
+      where: {
+        roundUuid: round_uuid,
+        [Op.or]: [
+          {
+            player_a_uuid: player_uuid
+          },
+          {
+            player_b_uuid: player_uuid
+          }
+        ]
+      }
+    });
+
+    return !!pairing; // Retorna true se o emparelhamento existir, caso contrário false
+  } catch (error) {
+    console.error('Erro ao verificar emparelhamento existente:', error);
+    throw new Error('Erro ao verificar emparelhamento');
+  }
+}
+
+/**
+ * Obtém os emparelhamentos entre dois jogadores para um torneio específico.
+ *
+ * @param {UUID} playerAUuid UUID do jogador A.
+ * @param {UUID} playerBUuid UUID do jogador B.
+ * @param {UUID} tournamentUuid UUID do torneio específico.
+ * @returns {Object|null} Retorna os detalhes do emparelhamento, ou null se não houver emparelhamento.
+ */
+async function getPairingsBetweenPlayers(playerAUuid, playerBUuid, tournamentUuid) {
+  try {
+    // Buscar rodadas para o torneio específico
+    const rounds = await Rounds.findAll({
+      where: {
+        tournamentUuid: tournamentUuid
+      }
+    });
+
+    if (rounds.length === 0) {
+      return null; // Nenhuma rodada encontrada para o torneio
+    }
+
+    // Buscar emparelhamento onde playerA e playerB já jogaram entre si nas rodadas do torneio
+    const pairings = await Pairings.findAll({
+      where: {
+        roundUuid: {
+          [Op.in]: rounds.map(round => round.uuid) // Filtrar pelos UUIDs das rodadas
+        },
+        [Op.or]: [
+          {
+            player_a_uuid: playerAUuid,
+            player_b_uuid: playerBUuid
+          },
+          {
+            player_a_uuid: playerBUuid,
+            player_b_uuid: playerAUuid
+          }
+        ]
+      }
+    });
+
+    return pairings.length > 0 ? pairings : null; // Retorna os emparelhamentos encontrados ou null
+  } catch (error) {
+    console.error('Erro ao buscar emparelhamentos entre os jogadores:', error);
+    throw error;
+  }
+}
+

@@ -390,6 +390,10 @@ async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_
         {
           model: Players,
           as: 'player_a'
+        },
+        {
+          model: Players,
+          as: 'player_b'
         }
       ],
       order:[
@@ -420,6 +424,10 @@ async function listPlayerPairings(event,tournament_uuid,player_uuid,limit_round_
           as: 'round',
           required: true,
           where: where_rounds
+        },
+        {
+          model: Players,
+          as: 'player_a'
         },
         {
           model: Players,

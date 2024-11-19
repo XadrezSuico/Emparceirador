@@ -772,7 +772,7 @@ async function generateAnotherRoundSwiss(tournament, last_round, is_final = fals
 
     let index = scores.indexOf(player.score);
 
-    if(index){
+    if(index >= 0){
       let last_index = 0;
       let next_index = scores.length - 1;
 
@@ -789,10 +789,15 @@ async function generateAnotherRoundSwiss(tournament, last_round, is_final = fals
         scores[next_index],
       ]
 
+      console.log("able_scores")
+      console.log(able_scores)
+
       for(let player_to_send of players_to_send){
-        if(player_to_send.id != player.id){
+        if (player_to_send.id != player.id) {
+          console.log(`${player.id}[${player.score}] - ${player_to_send.id}[${player_to_send.score}]`);
           if (!able_scores.includes(player_to_send.score)){
-            if (!player.avoid.includes(player_to_send.id)){
+            if (!player.avoid.includes(player_to_send.id)) {
+              console.log(`${player.id} - ${player_to_send.id} - avoided`);
               player.avoid[player.avoid.length] = player_to_send.id
             }
           }
@@ -867,6 +872,18 @@ async function generateAnotherRoundSwiss(tournament, last_round, is_final = fals
   }
 
   round_pairings = round_pairings.reverse()
+
+  let count_byes = 0;
+
+  for (let pairing of round_pairings){
+    if (pairing[1] == null){
+      count_byes++;
+    }
+
+    if(count_byes > 1){
+      return { ok: 0, error: 1, message: "O torneio não possui mais rodadas possíveis, encerrando na última rodada realizada." };
+    }
+  }
 
   for(let pairing_out of players_out){
     console.log("pairing out")

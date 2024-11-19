@@ -376,7 +376,7 @@ async function generateRoundSwiss(tournament){
 
       if(last_round.ok === 1){
         if(tournament.rounds_number > last_round.round.number){
-          return generateAnotherRoundSwiss(tournament);
+          return generateAnotherRoundSwiss(tournament, last_round);
         }else{
           return {ok:0,error:1,message:"O torneio conforme configuração não permite novas rodadas."};
         }
@@ -593,76 +593,343 @@ async function generateFirstRoundSwiss(tournament){
 //   }
 //   return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
 // }
+/**
+ * Gera uma nova rodada de emparceiramento suíço para um torneio.
+ *
+ * @param {Object} tournament Dados do torneio.
+ * @returns {Object} Resultado da operação.
+ */
+// async function generateAnotherRoundSwiss(tournament) {
+//   try {
+//     let retorno_last_round = await getLastRound(null, tournament.uuid);
+//     if (retorno_last_round.ok === 1) {
+//       let round_number = retorno_last_round.round.number + 1;
 
-async function generateAnotherRoundSwiss(tournament) {
-  try {
+//       // Buscar os jogadores do torneio ordenados por pontos
+//       const playersData = await PlayersController.listFromTournament(null, tournament.uuid, ['points', 'DESC']);
 
-    let retorno_last_round = await getLastRound(null,tournament.uuid);
-    if(retorno_last_round.ok === 1){
+//       if (playersData.ok !== 1) {
+//         return { ok: 0, error: 1, message: "Erro ao buscar jogadores para emparceiramento suíço." };
+//       }
 
-      let round_number = retorno_last_round.round.number + 1;
+//       const { players } = playersData;
+//       const pairings = [];
+//       const outs = players.filter(player => player.rounds_out[round_number] && !player.rounds_out[round_number].status);
+//       let availablePlayers = players.filter(player => !outs.includes(player));
 
-      // Buscar os jogadores do torneio ordenados por pontos (já jogados nas rodadas anteriores)
-      const playersData = await PlayersController.listFromTournament(null, tournament.uuid, ['points', 'DESC']);
+//       console.log(availablePlayers);
 
-      if (playersData.ok !== 1) {
-        return { ok: 0, error: 1, message: "Erro ao buscar jogadores para emparceiramento suíço." };
-      }
+//       // Excluir jogadores que já foram emparceirados nesta rodada
+//       // availablePlayers = await excludeAlreadyPairedPlayers(availablePlayers, round_number);
 
-      const { players } = playersData;
-      const pairings = [];
-      const outs = players.filter(player => player.rounds_out[round_number] && !player.rounds_out[round_number].status);
-      let availablePlayers = players.filter(player => !outs.includes(player));
+//       if (availablePlayers.length === 0) {
+//         return { ok: 0, error: 1, message: "Nenhum jogador disponível para emparceiramento." };
+//       }
 
-      console.log(availablePlayers);
+//       // Caso o número de jogadores seja ímpar, selecionar um jogador para o "bye"
+//       let byePlayer = null;
+//       if (availablePlayers.length % 2 !== 0) {
+//         console.log("hasBye");
+//         console.log(availablePlayers);
+//         byePlayer = await selectByePlayer(availablePlayers, tournament.uuid);
 
-      // Excluir jogadores que já foram emparceirados nesta rodada
-      // availablePlayers = await excludeAlreadyPairedPlayers(availablePlayers);
+//         console.log(byePlayer);
 
-      if (availablePlayers.length === 0) {
-        return { ok: 0, error: 1, message: "Nenhum jogador disponível para emparceiramento." };
-      }
+//         // Remover o jogador que recebeu o "bye" da lista de jogadores disponíveis
+//         availablePlayers = availablePlayers.filter(player => player.uuid !== byePlayer.uuid);
+//       }else{
+//         console.log("doesntHaveBye");
+//       }
 
-      // Caso o número de jogadores seja ímpar, selecionar um jogador para o "bye"
-      let byePlayer = null;
-      if (availablePlayers.length % 2 !== 0) {
-        byePlayer = selectByePlayer(availablePlayers);
+//       // Gerar emparceiramentos
+//       while (availablePlayers.length > 1) {
+//         console.log("availablePlayers.length > 1");
+//         const playerA = availablePlayers[0];
+//         const possibleOpponents = availablePlayers.slice(1).filter(opponent => !hasPlayedBefore(playerA, opponent, tournament, round_number));
 
-        // Remover o jogador que recebeu o "bye" da lista de jogadores disponíveis
-        availablePlayers = availablePlayers.filter(player => player.uuid !== byePlayer.uuid);
-      }
+//         if (possibleOpponents.length === 0) {
+//           possibleOpponents.push(availablePlayers[1]);
+//         }
 
-      // Gerar emparceiramentos: jogadores com pontuações mais próximas jogam entre si
-      while (availablePlayers.length > 1) {
-        console.log("availablePlayers.length > 1")
-        const playerA = availablePlayers[0];
-        const possibleOpponents = availablePlayers.slice(1).filter(opponent => !hasPlayedBefore(playerA, opponent, tournament, round_number));
+//         const playerB = possibleOpponents[0];
+//         pairings.push([playerA, playerB]);
 
-        if (possibleOpponents.length === 0) {
-          // Se não houver oponentes que ainda não jogaram com playerA, forçar um emparceiramento
-          possibleOpponents.push(availablePlayers[1]);
-        }
+//         availablePlayers = availablePlayers.filter(player => player.uuid !== playerA.uuid && player.uuid !== playerB.uuid);
+//       }
 
-        const playerB = possibleOpponents[0]; // Escolher o primeiro oponente válido
-        pairings.push([playerA, playerB]);
+//       if (byePlayer) {
+//         pairings.push([byePlayer, null]);
+//       }
 
-        // Remover os jogadores emparelhados da lista
-        availablePlayers = availablePlayers.filter(player => player.uuid !== playerA.uuid && player.uuid !== playerB.uuid);
-      }
+//       // Emitir os emparceiramentos gerados
+//       return saveSwissPairings(tournament, round_number, pairings);
+//     }
+//     return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
+//   } catch (error) {
+//     console.error("Erro ao gerar emparceiramentos suíços:", error);
+//     return { ok: 0, error: 1, message: "Erro ao gerar emparceiramentos suíços." };
+//   }
+// }
 
-      if(byePlayer){
-        pairings.push([byePlayer, null]);
-      }
+async function generateAnotherRoundSwiss(tournament, last_round, is_final = false) {
+  let players = await PlayersController.listFromTournament(tournament.eventUuid, tournament.uuid);
 
-      // Emitir os emparceiramentos gerados
-      return saveSwissPairings(tournament, round_number, pairings);
-    }
-    return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
-  } catch (error) {
-    console.error("Erro ao gerar emparceiramentos suíços:", error);
-    return { ok: 0, error: 1, message: "Erro ao gerar emparceiramentos suíços." };
+  if(players.error){
+    return { ok: 0, error: 1, message: players.message };
   }
+
+  let players_to_send = [];
+  let players_out = []
+
+  let scores = []
+
+  for (let player of players.players) {
+    console.log("player");
+    console.log(player);
+    let player_in = true;
+    if (player.rounds_out[last_round.round.number + 1]) {
+      if (!player.rounds_out[last_round.round.number + 1].status) {
+        console.log("player out");
+        players_out[players_out.length] = player
+        player_in = false;
+      }
+    }
+    if (player_in){
+      console.log("player in");
+      let player_to_send = {
+        id: player.start_number,
+        player: player,
+        score: 0,
+        pairedUpDown: true,
+        receivedBye: false,
+        avoid: [],
+        colors: []
+      }
+
+      let pairings = await PairingsController.listPlayerPairings(tournament.eventUuid, tournament.uuid, player.uuid)
+
+      if (pairings.error) {
+        return { ok: 0, error: 1, message: pairings.message };
+      }
+
+      // Set the points
+      player_to_send.score = pairings.points*2;
+
+      if (!scores.includes(player_to_send.score)){
+        scores[scores.length] = player_to_send.score;
+      }
+
+      let colors = [];
+      console.log("pairings");
+      console.log(pairings);
+      for (let pairing of pairings.player_pairings){
+        if(pairing){
+          console.log("pairing");
+          console.log(pairing);
+          if (!pairing.pairing.is_bye) {
+            console.log("place");
+            console.log(pairing.place);
+            if (pairing.place === "a") {
+              player_to_send.avoid[player_to_send.avoid.length] = pairing.pairing.player_b.start_number;
+
+              colors[colors.length] = "w";
+            } else {
+              player_to_send.avoid[player_to_send.avoid.length] = pairing.pairing.player_a.start_number;
+
+              colors[colors.length] = "b";
+            }
+          } else {
+            player_to_send.receivedBye = true;
+          }
+        }
+      }
+
+      // if(colors[colors.length - 1] === colors[colors.length - 2] && !is_final){
+      //   if (colors[colors.length - 1] == "w"){
+      //     player_to_send.colors[player_to_send.colors.length] = "b";
+      //   }else{
+      //     player_to_send.colors[player_to_send.colors.length] = "w";
+      //   }
+      // }else{
+      //   player_to_send.colors = ["w","b"];
+      // }
+
+      player_to_send.colors = colors
+
+      players_to_send[players_to_send.length] = player_to_send
+
+    }
+  }
+
+  if (players_to_send.length === 0) {
+    return { ok: 0, error: 1, message: "Erro ainda desconhecido" };
+  }
+
+  scores.sort();
+
+  for(let i = 0; i < players_to_send.length; i++){
+    let player = players_to_send[i];
+
+    let index = scores.indexOf(player.score);
+
+    if(index >= 0){
+      let last_index = 0;
+      let next_index = scores.length - 1;
+
+      if (index > 0) {
+        last_index = index - 1;
+      }
+      if (index < scores.length - 1) {
+        next_index = index + 1;
+      }
+
+      let able_scores = [
+        scores[last_index],
+        scores[index],
+        scores[next_index],
+      ]
+
+      console.log("able_scores")
+      console.log(able_scores)
+
+      for(let player_to_send of players_to_send){
+        if (player_to_send.id != player.id) {
+          console.log(`${player.id}[${player.score}] - ${player_to_send.id}[${player_to_send.score}]`);
+          if (!able_scores.includes(player_to_send.score)){
+            if (!player.avoid.includes(player_to_send.id)) {
+              console.log(`${player.id} - ${player_to_send.id} - avoided`);
+              player.avoid[player.avoid.length] = player_to_send.id
+            }
+          }
+        }
+      }
+    }
+
+    players_to_send[i] = player;
+  }
+
+  let { Swiss } = await import('tournament-pairings');
+
+  console.log("players_to_send")
+  console.log(players_to_send)
+
+  let swiss_return = Swiss(players_to_send, last_round.round.number+1, false, true);
+
+
+
+  console.log("swiss_return");
+  console.log(swiss_return);
+
+  // return { ok: 0, error: 1, message: "Erro ainda desconhecidoooo" };
+
+  if(swiss_return.length === 0){
+    return { ok: 0, error: 1, message: "Erro ainda desconhecidoooo" };
+  }
+
+  let group_pairings = [];
+  for(let pairing_generated of swiss_return){
+    let round_pairing = [null,null]
+
+    let points = 0;
+    for(let player_to_send of players_to_send){
+      if (player_to_send.id === pairing_generated.player1){
+        round_pairing[0] = player_to_send.player;
+        points = points + player_to_send.score;
+      } else if (player_to_send.id === pairing_generated.player2) {
+        round_pairing[1] = player_to_send.player;
+        points = points + player_to_send.score;
+      }
+    }
+
+    // points = points*2
+
+    if(!group_pairings[points]){
+      group_pairings[points] = []
+    }
+
+    group_pairings[points][group_pairings[points].length] = round_pairing;
+  }
+  console.log("group_pairings");
+  console.log(group_pairings);
+  console.log("scores");
+  console.log(scores);
+  console.log("scores");
+  console.log(scores.sort());
+  console.log("scores");
+  console.log(scores);
+
+
+
+
+  let round_pairings = [];
+
+  for(let group_pairing of group_pairings){
+    if (group_pairing){
+      for(let pairing of group_pairing){
+        round_pairings[round_pairings.length] = pairing
+      }
+    }
+  }
+
+  round_pairings = round_pairings.reverse()
+
+  let count_byes = 0;
+
+  for (let pairing of round_pairings){
+    if (pairing[1] == null){
+      count_byes++;
+    }
+
+    if(count_byes > 1){
+      return { ok: 0, error: 1, message: "O torneio não possui mais rodadas possíveis, encerrando na última rodada realizada." };
+    }
+  }
+
+  for(let pairing_out of players_out){
+    console.log("pairing out")
+    let round_pairing = [pairing_out,null,true];
+
+    round_pairings[round_pairings.length] = round_pairing;
+  }
+
+  // console.log("round_pairings")
+  // console.log(round_pairings)
+
+
+  // console.log("generateAnotherRoundSwiss - players");
+  // console.log(players);
+
+  return saveSwissPairings(tournament, last_round.round.number+1, round_pairings);
 }
+
+/**
+ * Seleciona um jogador elegível para receber o "bye" que ainda não o tenha recebido antes.
+ *
+ * @param {Array} availablePlayers Lista de jogadores disponíveis.
+ * @param {UUID} tournamentUuid UUID do torneio.
+ * @returns {Object} Jogador selecionado para o "bye".
+ */
+async function selectByePlayer(availablePlayers, tournamentUuid) {
+  for (let i = availablePlayers.length - 1; i >= 0; i--) {
+    const player = availablePlayers[i];
+
+    const previousBye = await Pairings.findOne({
+      where: {
+        player_a_uuid: player.uuid,
+        is_bye: true,
+        tournament_uuid: tournamentUuid
+      }
+    });
+
+    // Seleciona o primeiro jogador que ainda não recebeu um "bye"
+    if (!previousBye) {
+      return player;
+    }
+  }
+
+  return null; // Retorna null caso todos os jogadores já tenham recebido um "bye"
+}
+
 
 /**
  * Exclui jogadores que já foram emparceirados nesta rodada.

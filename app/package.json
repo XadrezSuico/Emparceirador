@@ -14,7 +14,7 @@
     "rxjs": "7.5.7",
     "sequelize": "^6.25.2",
     "sqlite3": "^5.1.2",
-    "tournament-pairings": "^1.5.3",
+    "tournament-pairings": "1.5.3",
     "uuidv4": "^6.2.13"
   },
   "scripts": {}

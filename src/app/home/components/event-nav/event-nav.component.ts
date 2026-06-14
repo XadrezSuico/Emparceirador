@@ -1,6 +1,6 @@
 import { Component, EventEmitter, NgZone, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
-import { faFolderOpen, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faFolderOpen, faPlusCircle, faCog } from '@fortawesome/free-solid-svg-icons';
 import { ElectronService } from '../../../core/services';
 import Swal from 'sweetalert2';
 
@@ -13,6 +13,7 @@ export class EventNavComponent implements OnInit {
 
   faAdd = faPlusCircle;
   faOpen = faFolderOpen;
+  faCog = faCog;
 
   @Output()
   event_imported_emitter = new EventEmitter<void>();

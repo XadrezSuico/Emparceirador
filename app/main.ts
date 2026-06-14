@@ -148,9 +148,6 @@ async function checkIfJavaExists(callback_error,callback_ok){
     });
 }
 
-function checkIfJaVaFoIsDownloaded(){
-
-}
 
 function createShowPdfWindow() {
   const win = new PDFWindow(browser_window_opts)
@@ -222,6 +219,7 @@ const standing_controller = require("./controllers/standing.controller")
 const tiebreak_controller = require("./controllers/tiebreak.controller")
 
 const import_export_controller = require("./controllers/import-export.controller")
+const javafo_controller = require("./controllers/javafo.controller")
 
 try {
   // This method will be called when Electron has finished
@@ -230,49 +228,30 @@ try {
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
   app.on('ready', async () => {
 
-    await checkIfJavaExists(
-      async (error)=>{
-        if(error.message){
-          dialog.showMessageBox(null,{
-            message:error.message,
-            type:"error",
-          });
-        }else{
-          dialog.showMessageBox(null,{
-            message:"Ocorreu um erro desconhecido",
-            type:"error",
-          });
-        }
-      },
+    const startApp = async () => {
+      pdf_window = await createPdfWindow();
 
+      setTimeout(async () =>{
+        ipcMain.on('set-title', setTitle)
+        event_controller.setEvents(ipcMain)
+        tournament_controller.setEvents(ipcMain)
+        category_controller.setEvents(ipcMain)
+        player_controller.setEvents(ipcMain, generateAndOpenPdf)
+        round_controller.setEvents(ipcMain)
+        pairing_controller.setEvents(ipcMain, generateAndOpenPdf)
+        standing_controller.setEvents(ipcMain, generateAndOpenPdf)
+        tiebreak_controller.setEvents(ipcMain)
 
-      async (version)=>{
-        pdf_window = await createPdfWindow();
-
+        import_export_controller.setEvents(ipcMain)
+        javafo_controller.setEvents(ipcMain)
 
         setTimeout(async () =>{
-          ipcMain.on('set-title', setTitle)
-          event_controller.setEvents(ipcMain)
-          tournament_controller.setEvents(ipcMain)
-          category_controller.setEvents(ipcMain)
-          player_controller.setEvents(ipcMain, generateAndOpenPdf)
-          round_controller.setEvents(ipcMain)
-          pairing_controller.setEvents(ipcMain, generateAndOpenPdf)
-          standing_controller.setEvents(ipcMain, generateAndOpenPdf)
-          tiebreak_controller.setEvents(ipcMain)
-
-          import_export_controller.setEvents(ipcMain)
-
-
-
-          setTimeout(async () =>{
-            createWindow();
-          }, 400)
+          createWindow();
         }, 400)
-      }
+      }, 400)
+    };
 
-
-    );
+    startApp();
   });
 
   // Quit when all windows are closed.

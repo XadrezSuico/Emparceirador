@@ -1,0 +1,77 @@
+<app-event-nav></app-event-nav>
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h4>Configurações Gerais</h4>
+    </div>
+    <div class="card-body">
+      
+      <div class="form-group mb-4">
+        <label class="form-label d-block">Tema da Aplicação</label>
+        
+        <div class="btn-group" role="group" aria-label="Seleção do Tema">
+          <input type="radio" class="btn-check" name="themeOptions" id="themeLight" autocomplete="off" [(ngModel)]="appTheme" value="light" (change)="onThemeChange()">
+          <label class="btn btn-outline-primary" for="themeLight">Claro</label>
+
+          <input type="radio" class="btn-check" name="themeOptions" id="themeDark" autocomplete="off" [(ngModel)]="appTheme" value="dark" (change)="onThemeChange()">
+          <label class="btn btn-outline-primary" for="themeDark">Escuro</label>
+
+          <input type="radio" class="btn-check" name="themeOptions" id="themeSystem" autocomplete="off" [(ngModel)]="appTheme" value="system" (change)="onThemeChange()">
+          <label class="btn btn-outline-primary" for="themeSystem">Sistema</label>
+        </div>
+
+        <small class="form-text text-muted d-block mt-2">
+          Escolha o tema visual do aplicativo. A opção Sistema seguirá a preferência do seu sistema operacional.
+        </small>
+      </div>
+
+      <div class="form-group mb-4">
+        <label class="form-label d-block">Motor de Emparceiramento</label>
+        
+        <div class="btn-group" role="group" aria-label="Seleção do Motor de Emparceiramento">
+          <input type="radio" class="btn-check" name="pairingEngineOptions" id="engineNative" autocomplete="off" [(ngModel)]="pairingEngine" value="native" (change)="onEngineChange()">
+          <label class="btn btn-outline-primary" for="engineNative">Nativo (Offline/Padrão)</label>
+
+          <input type="radio" class="btn-check" name="pairingEngineOptions" id="engineJavafo" autocomplete="off" [(ngModel)]="pairingEngine" value="javafo" (change)="onEngineChange()">
+          <label class="btn btn-outline-primary" for="engineJavafo">JaVaFo (Padrão FIDE)</label>
+        </div>
+
+        <small class="form-text text-muted d-block mt-2">
+          Escolha qual motor será acionado no momento de gerar as rodadas dos torneios do tipo Suíço.
+        </small>
+      </div>
+
+      <div class="alert alert-info" *ngIf="pairingEngine === 'javafo'">
+        <h5>Status do JaVaFo</h5>
+        
+        <ul class="list-group list-group-flush bg-transparent mb-3">
+          <li class="list-group-item bg-transparent px-0 border-0">
+            <i class="fas" [ngClass]="{'fa-check-circle text-success': isJavaInstalled, 'fa-times-circle text-danger': !isJavaInstalled}"></i>
+            Java Instalado {{ isJavaInstalled ? '(' + javaVersion + ')' : '' }}
+          </li>
+          <li class="list-group-item bg-transparent px-0 border-0">
+            <i class="fas" [ngClass]="{'fa-check-circle text-success': isJaVaFoInstalled, 'fa-times-circle text-danger': !isJaVaFoInstalled}"></i>
+            Motor JaVaFo Baixado
+          </li>
+        </ul>
+
+        <div *ngIf="!isJavaInstalled">
+          <p class="text-danger mb-0">Você precisa instalar o Java no seu computador antes de utilizar o JaVaFo.</p>
+        </div>
+
+        <div *ngIf="isJavaInstalled && !isJaVaFoInstalled && !isDownloading">
+          <button class="btn btn-primary" (click)="downloadJaVaFo()">Baixar e Instalar JaVaFo</button>
+        </div>
+        
+        <div *ngIf="isDownloading">
+          <p class="mb-0"><i class="fas fa-spinner fa-spin"></i> Baixando JaVaFo, por favor aguarde...</p>
+        </div>
+        
+        <div *ngIf="isJavaInstalled && isJaVaFoInstalled">
+          <p class="text-success mb-0"><strong>Tudo pronto!</strong> O sistema utilizará o JaVaFo para os próximos emparceiramentos.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

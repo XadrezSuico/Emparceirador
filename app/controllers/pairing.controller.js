@@ -192,7 +192,7 @@ async function listAll() {
   }
 }
 
-async function listFromRound(event,round_uuid) {
+async function listFromRound(event,round_uuid,points) {
   try {
     let round_request = await RoundsController.get(null,round_uuid);
     if(round_request.ok === 1){
@@ -200,12 +200,15 @@ async function listFromRound(event,round_uuid) {
       // let round_update_standings_request = await RoundsController.updateStandings(null,round_request.round.uuid);
 
       // if(round_update_standings_request.ok === 1){
-        let pairings = await Pairings.findAll({
+      let pairings;
+      if (points){
+        pairings = await Pairings.findAll({
           where: {
-            roundUuid: round_uuid
+            roundUuid: round_uuid,
+            points:points
           },
-          order:[
-            ["number","ASC"]
+          order: [
+            ["number", "ASC"]
           ],
           include: [
             {
@@ -228,24 +231,65 @@ async function listFromRound(event,round_uuid) {
                 {
                   model: Standings,
                   as: 'standings',
-                  order:[
-                    ["round_number","ASC"]
+                  order: [
+                    ["round_number", "ASC"]
                   ],
                 }
               ]
             },
           ]
         });
+      }else{
 
-        // return { ok: 1, error: 0, pairings: [] };
-        return { ok: 1, error: 0, pairings: await PairingDTO.convertToExportList(pairings,round_request.round.tournament.table_start_number)};
+        pairings = await Pairings.findAll({
+          where: {
+            roundUuid: round_uuid
+          },
+          order: [
+            ["number", "ASC"]
+          ],
+          include: [
+            {
+              model: Players,
+              as: 'player_a',
+              include: [
+                {
+                  model: Standings,
+                  as: 'standings',
+                  order: [
+                    ["round_number", "ASC"]
+                  ],
+                }
+              ]
+            },
+            {
+              model: Players,
+              as: 'player_b',
+              include: [
+                {
+                  model: Standings,
+                  as: 'standings',
+                  order: [
+                    ["round_number", "ASC"]
+                  ],
+                }
+              ]
+            },
+          ]
+        });
       }
+
+      // return { ok: 1, error: 0, pairings: [] };
+      return { ok: 1, error: 0, pairings: await PairingDTO.convertToExportList(pairings,round_request.round.tournament.table_start_number)};
+    }
     // }
   } catch (error) {
       console.log(error);
   }
   return { ok: 0, error: 1, message:"Erro desconhecido" };
 }
+
+
 
 
 async function get(e,uuid) {

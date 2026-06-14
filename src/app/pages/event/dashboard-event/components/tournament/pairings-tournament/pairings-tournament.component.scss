@@ -1,8 +1,22 @@
 .row-selected{
-  background-color: green;
+  background-color: green !important;
   color: white !important;
-  td{
+  
+  td {
+    background-color: green !important;
     color: white !important;
+    box-shadow: inset 0 0 0 9999px green !important; /* overrides bootstrap table-striped */
+  }
+
+  [data-bs-theme="dark"] & {
+    background-color: #198754 !important;
+    color: #fff !important;
+    
+    td {
+      background-color: #198754 !important;
+      color: #fff !important;
+      box-shadow: inset 0 0 0 9999px #198754 !important;
+    }
   }
 }
 .btn-functions{

@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { ElectronService } from './core/services';
+import { Component, OnInit } from '@angular/core';
+import { ElectronService, ThemeService } from './core/services';
 import { TranslateService } from '@ngx-translate/core';
 import { APP_CONFIG } from '../environments/environment';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -9,9 +9,10 @@ import { ActivatedRoute, Router } from '@angular/router';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   constructor(
     private electronService: ElectronService,
+    private themeService: ThemeService,
     private translate: TranslateService,
     private route: ActivatedRoute,
     private router: Router
@@ -34,5 +35,9 @@ export class AppComponent {
     } else {
       console.log('Run in browser');
     }
+  }
+
+  ngOnInit() {
+    this.themeService.initTheme();
   }
 }

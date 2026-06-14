@@ -1,4 +1,5 @@
 import { ListEventsComponent } from './../pages/event/list-events/list-events.component';
+import { SettingsComponent } from '../pages/settings/settings.component';
 import { NewEventComponent } from './../pages/event/new-event/new-event.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -18,6 +19,10 @@ const routes: Routes = [
   {
     path: 'event/list',
     component: ListEventsComponent
+  },
+  {
+    path: 'settings',
+    component: SettingsComponent
   },
 ];
 

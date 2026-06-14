@@ -120,14 +120,16 @@ async function generateTiebreakDirectEncounter(player_standing){
   let standings = [];
 
   // Get other standings with same points
-  let standing_request = await StandingsController.listFromRound(null,player_standing.tournament.uuid,player_standing.round.uuid);
+  let standing_request = await StandingsController.listFromRound(null,player_standing.tournament.uuid,player_standing.round.uuid,player_standing.points);
   if(standing_request.ok === 1){
-    let st_c = 0;
-    for (let standing of standing_request.standings) {
-      if (standing.points === player_standing.points && standing.player.uuid !== player_standing.player.uuid) {
-        standings[st_c++] = standing;
-      }
-    }
+    standings = standing_request.standings;
+    // let st_c = 0;
+    // for (let standing of standing_request.standings) {
+    //   if (standing.points === player_standing.points && standing.player.uuid !== player_standing.player.uuid) {
+    //     standings[st_c++] = standing;
+    //   }
+    // }
+
 
     // If don't have other players with same points, this tiebreak doesn't work
     if (standings.length === 0) {
@@ -159,7 +161,7 @@ async function generateTiebreakDirectEncounter(player_standing){
   return 0;
 }
 
-async function generateTieBreakBuchholz(player_standing,better_not_count=0,worst_not_count=0){
+async function generateTieBreakBuchholz(player_standing,better_not_count=0,worst_not_count=0,unplayed_games="none"){
   let results = [];
   let results_count = 0;
 

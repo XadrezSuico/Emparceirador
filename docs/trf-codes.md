@@ -30,6 +30,7 @@ Aqui listo os códigos referentes a cada um dos itens, em ordem:
 | 112 | Árbitro Adjunto (Um árbitro por linha) ||
 | 122 | Tempo de Reflexão ||
 | 132 | Datas das Rodadas | Ver formato de datas de rodadas |
+| XXR | Número de Rodadas | Importante para o JaVaFo saber o total de rodadas. |
 | 001 | Jogadores | Ver formato de jogadores |
 
 ____
@@ -48,6 +49,7 @@ Segue exemplo:
 - Data Rodada **n**: **Sn**-**Fn**
 
 Sn = **(92 + ((n - 1) \* 8) + ((n - 1) \* 2))**
+
 Fn = **(99 + ((n - 1) \* 8) + ((n - 1) \* 2))**
 
 A fórmula apresentada para Sn e Fn considera que **n > 0**. Sei que o objetivo aqui não é falar de fórmulas matemáticas, mas isso ajuda a entender como funciona o conceito.
@@ -85,11 +87,12 @@ As colunas a partir da 92 servem para tal, mas existe, da mesma forma das inform
 - Rodada **n**: **Sn**-**Fn**
 
 Sn = **(92 + ((n - 1) \* 8) + ((n - 1) \* 2))**
+
 Fn = **(99 + ((n - 1) \* 8) + ((n - 1) \* 2))**
 
 A regra serve da mesma forma da data das rodadas referente as definições de colunas, porém, as informações a serem apresentadas são diferentes.
 
-Vou considerar o número 1 para a primeira coluna neste caso (exemplos: Rodada 1: 92; Rodada 2: 99; Rodada 3: 112; Rodada n: Sn) e segue-se a partir daí para as próximas.
+Vou considerar o número 1 para a primeira coluna neste caso (exemplos: Rodada 1: 92; Rodada 2: 102; Rodada 3: 112; Rodada n: Sn) e segue-se a partir daí para as próximas.
 
 | Colunas | Descrição | Conteúdo | Importância para Rating | Importância para Emparceiramento |
 |-|-|-|-|-|
@@ -125,3 +128,35 @@ Tudo depende da configuração de pontos do torneio.
 Se o torneio trabalha com o formato de "match-points", então deve-se considerar o formato 3/1/0, ou seja, 3 para vitória, 1 para empate e 0 para derrotas. Exemplo neste caso: se há 5 vitórias, 2 empates e 2 derrotas, o valor de pontuação para esse jogador deve ser de 17.0.
 Caso seja pontuação normal, soma-se os pontos obtidos pelo jogador.
 **Importante!** Deve-se atentar a pontuação de bye, onde o _pairing-bye_ geralmente recebe 1 ponto, mas depende da configuração do torneio.
+
+___
+
+### Exemplo de Arquivo TRF16
+
+Para ilustrar tudo o que foi explicado acima, veja um exemplo básico de como é a estrutura de um arquivo TRF16:
+
+```text
+012  Torneio Exemplo Xadrez Suíço
+022  São Paulo
+032  BRA
+042  2023/10/20
+052  2023/10/22
+062      4
+072      4
+082      0
+092  Indiv
+102  Arbitro Principal
+112  Arbitro Adjunto
+122  90+30
+132                                                                                        23/10/20  23/10/21  23/10/22
+XXR  3
+001    1 m      Fulano de Tal                    2000 BRA  12345678 1990/01/01  2.0    1       2 w 1     3 b =     4 w = 
+001    2 m      Ciclano Silva                    1900 BRA  87654321 1992/02/02  2.0    2       1 b 0     4 w 1     3 w 1
+001    3 m      Beltrano Souza                   1800 BRA  11112222 1995/03/03  1.5    3       4 w 1     1 w =     2 b 0
+001    4 w      Maria Oliveira                   1700 BRA  33334444 1996/04/04  0.5    4       3 b 0     2 b 0     1 b =
+```
+
+**Observações Finais:**
+- Certifique-se de que o **encoding do arquivo seja UTF-8**.
+- O emparceirador JaVaFo requer a linha `XXR` informando o total de rodadas do torneio para funcionar corretamente e evitar erros no emparceiramento.
+- Cuidado com o alinhamento das colunas! O JaVaFo e a FIDE utilizam a posição exata (coluna/caractere) para ler as informações. Se uma string extrapolar o seu limite e invadir a coluna seguinte, os dados serão corrompidos.

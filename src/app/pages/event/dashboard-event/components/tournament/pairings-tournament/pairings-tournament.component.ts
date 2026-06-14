@@ -73,7 +73,8 @@ export class PairingsTournamentComponent implements OnInit, OnDestroy, OnChanges
 
   async generateRound(){
     this.is_requesting_emmiter.emit(true);
-    let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.generateRound", this.tournament_uuid);
+    let engine = localStorage.getItem('pairing_engine') || 'javafo';
+    let  retorno = await this.electronService.ipcRenderer.invoke("controller.rounds.generateRound", this.tournament_uuid, engine);
     console.log("generateRound")
     console.log(retorno)
     if(retorno.ok){
